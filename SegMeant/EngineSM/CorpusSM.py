@@ -5,9 +5,18 @@ from .classification import ClassificationSM
 import os
 
 class CorpusSM:
+    """
+    Classe représentant un ensemble de textes tokenisés et étiquetés, et permettant des traitements groupés ainsi que des tâches de classification.
+
+    :param documents: une liste de documents bruts ou traités que l'on souhaite rassembler
+    :type documents: une liste de str ou de :class:`SegmentedTextSM` (pouvant être mélangés)
+    """
 
 
     def __init__(self, documents: list):
+        """
+        Constructeur de la classe.
+        """
 
         self.documents: list = []
         self.matrices: dict = {}

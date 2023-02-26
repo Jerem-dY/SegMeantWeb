@@ -217,7 +217,8 @@ class SegmentedTextSM:
 
             # On teste avec deux versions : une normale et une en minuscule. L'idée est de prendre en compte les
             # noms propres d'une part, et les mots en début de phrase (donc avec majuscule) d'autre part
-            versions: list = [token.txt, token.txt.lower(), token.txt[:-1] if token.txt[:-1] == "'" else token.txt, token.txt[:-1] if token.txt[:-1] == "’" else token.txt] 
+            versions: list = [token.txt, token.txt.lower(), token.txt[:-1] if token.txt[:-1] == "'" else token.txt, token.txt[:-1] if token.txt[:-1] == "’" else token.txt, 
+                token.txt[:-1].lower() if token.txt[:-1] == "'" else token.txt.lower(), token.txt[:-1].lower() if token.txt[:-1] == "’" else token.txt.lower()] 
             tagged: bool = False
 
             for txt in versions:

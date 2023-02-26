@@ -18,7 +18,6 @@ OBSERVATIONS
 
 from .EngineSM import SegmentedTextSM
 from .EngineSM.SegmentedTextSM import SegmentedTextSM
-from .EngineSM.statistics import StatisticsSM
 from .EngineSM.resources.NGramsSM import NGramsSM
 from .EngineSM.resources.LexiconSM import LexiconSM
 from .EngineSM.CorpusSM import CorpusSM
@@ -40,8 +39,15 @@ catGet = re.compile(r"""
 
 
 class SegMeant:
+    """
+    Classe représentant le moteur du module. La création d'une instance permet la mise en place des ressources nécessaires aux traitements ainsi que l'accès à des Factories pour construire des corpus
+    et des textes traités très facilement.
+    """
 
     def __init__(self):
+        """
+        Constructeur de la classe.
+        """
         with open("SegMeant/EngineSM/resources/fr_ftb-ud-train.conllu", mode="r", encoding="utf-8") as f:
             pg = ""
             ph = []
@@ -58,6 +64,14 @@ class SegMeant:
     pass
 
     def segment_text_from_file(self, path: str) -> SegmentedTextSM:
+        """
+        Factory method permettant la création d'un texte tokenisé à partir d'un nom de fichier, en prenant en charge l'ajout au cache du module pour faciliter la réutilisation des données.
+        
+        :param path: le chemin d'accès du fichier (relatif ou absolu)
+        :type path: une chaîne de caractère, de préférence en utf-8
+        :return: un objet :class:`SegmentedTextSM` représentant le texte tokenisé et étiqueté.
+        :rtype: une référence sur un objet :class:`SegmentedTextSM`
+        """
 
         with open(path, mode="r", encoding="utf-8") as f:
 
@@ -75,6 +89,15 @@ class SegMeant:
 
 
     def corpus_from_paths(self, paths: list) -> CorpusSM:
+        """
+        Une factory générant un corpus, soit un objet rassemblant plusieurs :class:`SegmentedTextSM` et permettant des traitement de groupe, notamment des calculs de similarité et des processus
+        de classification automatiques.
+
+        :param paths: les chemins d'accès des différents fichiers textes bruts
+        :type paths: une liste de chaînes de caractères
+        :return: un objet :class:`CorpusSM` contenant les textes tokenisés et étiquetés
+        :rtype: :class:`CorpusSM`
+        """
 
         docs: list = []
 
