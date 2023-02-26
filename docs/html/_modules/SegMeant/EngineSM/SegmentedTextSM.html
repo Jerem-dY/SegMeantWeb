@@ -1,0 +1,963 @@
+
+<!DOCTYPE html>
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SegMeant.EngineSM.SegmentedTextSM &#8212; Documentation SegMeant 1.0</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/agogo.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/translations.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Recherche" href="../../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../index.html">Documentation SegMeant 1.0</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../py-modindex.html" title="Index des modules Python"
+             >modules</a> |
+          <a href="../../../genindex.html" title="Index général"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Code source de SegMeant.EngineSM.SegmentedTextSM</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">INFORMATIONS GENERALES</span>
+<span class="sd">=========================================================================</span>
+<span class="sd">Cours de Python - M1 Sciences du Langage parcours Industries de la Langue</span>
+<span class="sd">Projet de fin de semestre</span>
+
+<span class="sd">INFORMATIONS SUR LE MODULE</span>
+<span class="sd">=========================================================================</span>
+<span class="sd">:auteur: Jérémy Bourdillat &lt;Jeremy.Bourdillat@etu.univ-grenoble-alpes.fr&gt;</span>
+<span class="sd">:version: 1.0</span>
+<span class="sd">Python ver. 3.11.1</span>
+
+<span class="sd">OBSERVATIONS</span>
+<span class="sd">=========================================================================</span>
+<span class="sd">- order() : mieux gérer le niveau des tokens et, pourquoi pas, intégrer la tokenisation dedans</span>
+<span class="sd">- zipf : permettre le choix d&#39;utiliser les lemmes ou les formes, et permettre le tri en fonction des étiquettes</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">html</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">.tree.NodeSM</span> <span class="kn">import</span> <span class="n">NodeSM</span>
+<span class="kn">from</span> <span class="nn">.resources.NGramsSM</span> <span class="kn">import</span> <span class="n">NGramsSM</span>
+<span class="kn">from</span> <span class="nn">.resources.LexiconSM</span> <span class="kn">import</span> <span class="n">LexiconSM</span>
+<span class="kn">from</span> <span class="nn">.statistics.StatisticsSM</span> <span class="kn">import</span> <span class="n">DataStatsSM</span>
+<span class="kn">from</span> <span class="nn">.tools.benchmark</span> <span class="kn">import</span> <span class="n">timeit</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
+<span class="kn">from</span> <span class="nn">zipfile</span> <span class="kn">import</span> <span class="n">ZipFile</span><span class="p">,</span> <span class="n">is_zipfile</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+
+
+
+<span class="n">HIERARCHY</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;token&#39;</span> <span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;clause&#39;</span> <span class="p">:</span> <span class="s1">&#39;,;:&#39;</span><span class="p">,</span> <span class="s1">&#39;sentence&#39;</span> <span class="p">:</span> <span class="s1">&#39;.?!&#39;</span><span class="p">,</span> <span class="s1">&#39;paragraph&#39;</span> <span class="p">:</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">}</span>
+
+
+
+<span class="n">LexiquetoUD</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;ADJ&quot;</span> <span class="p">:</span> <span class="s2">&quot;ADJ&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ADJ:dem&quot;</span> <span class="p">:</span> <span class="s2">&quot;DET&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ADJ:ind&quot;</span> <span class="p">:</span> <span class="s2">&quot;DET&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ADJ:int&quot;</span> <span class="p">:</span> <span class="s2">&quot;DET&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ADJ:num&quot;</span> <span class="p">:</span> <span class="s2">&quot;NUM&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ADJ:pos&quot;</span> <span class="p">:</span> <span class="s2">&quot;DET&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ART:def&quot;</span> <span class="p">:</span> <span class="s2">&quot;DET&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ART:inf&quot;</span> <span class="p">:</span> <span class="s2">&quot;DET&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ART:ind&quot;</span> <span class="p">:</span> <span class="s2">&quot;DET&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CON&quot;</span> <span class="p">:</span> <span class="s2">&quot;CCONJ&quot;</span><span class="p">,</span> <span class="c1"># Problème ici, la source est moins précise que la sortie !</span>
+    <span class="s2">&quot;&quot;</span> <span class="p">:</span> <span class="s2">&quot;SCONJ&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NOM&quot;</span> <span class="p">:</span> <span class="s2">&quot;NOUN&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;AUX&quot;</span> <span class="p">:</span> <span class="s2">&quot;AUX&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PRE&quot;</span> <span class="p">:</span> <span class="s2">&quot;ADP&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ADV&quot;</span> <span class="p">:</span> <span class="s2">&quot;ADV&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PRO&quot;</span> <span class="p">:</span> <span class="s2">&quot;PRON&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VER&quot;</span> <span class="p">:</span> <span class="s2">&quot;VERB&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PRO:dem&quot;</span> <span class="p">:</span> <span class="s2">&quot;PRON&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PRO:ind&quot;</span> <span class="p">:</span> <span class="s2">&quot;PRON&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PRO:int&quot;</span> <span class="p">:</span> <span class="s2">&quot;PRON&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PRO:per&quot;</span> <span class="p">:</span> <span class="s2">&quot;PRON&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PRO:pos&quot;</span> <span class="p">:</span> <span class="s2">&quot;PRON&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PRO:rel&quot;</span> <span class="p">:</span> <span class="s2">&quot;PRON&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ONO&quot;</span> <span class="p">:</span> <span class="s2">&quot;INTJ&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;$&quot;</span> <span class="p">:</span> <span class="s2">&quot;SYM&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&quot;</span> <span class="p">:</span> <span class="s2">&quot;PROPN&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&quot;</span> <span class="p">:</span> <span class="s2">&quot;PART&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&quot;</span> <span class="p">:</span> <span class="s2">&quot;PUNCT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&quot;</span> <span class="p">:</span> <span class="s2">&quot;X&quot;</span>	
+<span class="p">}</span>
+
+
+
+
+
+<div class="viewcode-block" id="SegmentedTextSM"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM">[docs]</a><span class="k">class</span> <span class="nc">SegmentedTextSM</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Représente un texte segmenté en tokens et organisés hiérarchiquement.</span>
+<span class="sd">    La classe donne accès à des statistiques sur le texte en lui-même, et permet des exports en tout type.</span>
+<span class="sd">    Par la suite, elle permettra aussi d&#39;effectuer des recherches assez précises sur les différents éléments (formes, tokens, lemmes, etc.)</span>
+<span class="sd">    et de générer des statistiques personnalisées.</span>
+
+<span class="sd">    Ainsi, l&#39;objectif est double : </span>
+<span class="sd">    - Permettre l&#39;export de différentes représentations du texte (lemmes, formes, statistiques diverses, phrases, etc.)</span>
+<span class="sd">    - Permettre une représentation en mémoire simple et accessible pour une utilisation facile en tant que bibliothèque externe </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">grm</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    (?:etc\.|p\.ex\.|cf\.|M\.|MM\.) |</span>
+<span class="s2">    (\w+[&#39;’]? |</span>
+<span class="s2">    \- |</span>
+<span class="s2">    [^\s\w]+ |</span>
+<span class="s2">    \n) </span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+   
+    <span class="nd">@timeit</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="nb">str</span> <span class="ow">or</span> <span class="nb">list</span><span class="p">,</span> <span class="n">lexicon</span><span class="p">:</span> <span class="n">LexiconSM</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span><span class="n">NGramsSM</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">doc_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">levels</span><span class="p">:</span> <span class="nb">dict</span><span class="o">=</span><span class="n">HIERARCHY</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">hierarchy</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">levels</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;nbChar&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">doc_name</span>
+
+
+        <span class="c1"># Si l&#39;on a fournit un texte d&#39;entrée, on s&#39;occupe de le traiter (permet de générer des objets vides)</span>
+        <span class="k">if</span> <span class="n">txt</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">txt</span> <span class="o">=</span> <span class="n">txt</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenize</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grm</span><span class="p">)</span> <span class="c1"># On tokenise le texte avec la grammaire</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lexicon</span><span class="p">,</span> <span class="n">LexiconSM</span><span class="p">):</span> <span class="c1"># Si un lexique a été fourni :</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_lexicalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">,</span> <span class="n">lexicon</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">NGramsSM</span><span class="p">):</span> <span class="c1"># Si un modèle de tagging basé sur des NGrams a été fourni :</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lemmas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;nbLm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lemmas</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">levels</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">)</span> <span class="c1"># On stocke le nombre de tokens</span>
+
+            <span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;PUNCT&quot;</span><span class="p">,</span> <span class="s2">&quot;NUM&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">]]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">types</span> <span class="o">=</span> <span class="n">DataStatsSM</span><span class="p">(</span><span class="n">types</span><span class="p">,</span> <span class="n">NGramsSM</span><span class="p">(</span><span class="n">txt</span><span class="o">=</span><span class="n">types</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">))</span>
+
+            <span class="n">lemmas</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s1">&#39;lemme&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">i</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s1">&#39;cat&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lemmas</span> <span class="o">=</span> <span class="n">DataStatsSM</span><span class="p">(</span><span class="n">lemmas</span><span class="p">,</span> <span class="n">NGramsSM</span><span class="p">(</span><span class="n">txt</span><span class="o">=</span><span class="n">lemmas</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;lemmes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lemmas</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">])</span>
+            
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;vocCurve&#39;</span><span class="p">]:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;zipf&#39;</span><span class="p">]:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="c1">#self._order(levels) # On génère l&#39;arbre à partir des tokens</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="p">()</span>
+
+            <span class="n">ty</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="n">cmptr</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">):</span>
+                
+                <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;PUNCT&quot;</span><span class="p">,</span> <span class="s2">&quot;NUM&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">txt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ty</span><span class="p">:</span>
+                        <span class="n">cmptr</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="n">ty</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">txt</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># On crée un point dans la courbe du vocabulaire tous les 100 tokens</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;vocCurve&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmptr</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">]:</span>
+                <span class="c1"># On trie les formes par fréquence absolue dans le texte :</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;zipf&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">][</span><span class="n">u</span><span class="p">]))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;zipf&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span> <span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># On calcule le ratio type/token</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;typeTokenRatio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">levels</span><span class="p">)[</span><span class="mi">0</span><span class="p">]],</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">pass</span>
+
+    
+    <span class="nd">@timeit</span>
+    <span class="k">def</span> <span class="nf">_tokenize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt</span><span class="p">:</span> <span class="nb">str</span> <span class="ow">or</span> <span class="nb">list</span><span class="p">,</span> <span class="n">regex</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tokenise la chaîne de caractères à l&#39;aide d&#39;une expression régulière.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Tokenisation en cours...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">iter</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">cmptr</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">txt</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">regex</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">tok</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                        <span class="n">cmptr</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="n">out</span> <span class="o">+=</span> <span class="p">[</span><span class="n">NodeSM</span><span class="p">(</span><span class="n">tok</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">cmptr</span><span class="p">)]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nbChar&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nbChar&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">NodeSM</span><span class="p">(</span><span class="n">tok</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tok</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">regex</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">txt</span><span class="p">))</span> <span class="k">if</span> <span class="n">tok</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+    <span class="k">pass</span>
+
+    
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@timeit</span>
+    <span class="k">def</span> <span class="nf">_lexicalize</span><span class="p">(</span><span class="n">tokens</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">lexicon</span><span class="p">:</span> <span class="n">LexiconSM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Procède à l&#39;analyse lexicale des tokens, en déterminant toutes les possibilités de lemme à partir d&#39;un lexique</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Lexicalisation en cours...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># On compile les expressions régulières qui servent à reconnaître des cas particuliers (utile pour les gros fichiers)</span>
+        <span class="n">digits</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[0-9]+&quot;</span><span class="p">)</span>
+        <span class="n">propn</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[A-Z]\w+&quot;</span><span class="p">)</span>
+        <span class="n">punct</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[\W\S]+&quot;</span><span class="p">)</span>
+
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+
+            <span class="c1"># On teste avec deux versions : une normale et une en minuscule. L&#39;idée est de prendre en compte les</span>
+            <span class="c1"># noms propres d&#39;une part, et les mots en début de phrase (donc avec majuscule) d&#39;autre part</span>
+            <span class="n">versions</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&#39;&quot;</span> <span class="k">else</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">,</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;’&quot;</span> <span class="k">else</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">]</span> 
+            <span class="n">tagged</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">for</span> <span class="n">txt</span> <span class="ow">in</span> <span class="n">versions</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="n">txt</span> <span class="ow">in</span> <span class="n">lexicon</span><span class="o">.</span><span class="n">lex</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span> <span class="c1"># Si le token est dans le lexique :</span>
+                    <span class="n">lemmas</span> <span class="o">=</span> <span class="n">lexicon</span><span class="p">[</span><span class="n">txt</span><span class="p">]</span> <span class="c1"># On récupère la liste des lemmes et leur catégorie</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">lemmas</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">LexiquetoUD</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span> <span class="c1"># Si la catégorie existe dans le tableau de conversion vers les UDs :</span>
+                            <span class="n">j</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">LexiquetoUD</span><span class="p">[</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">]]</span>
+                            <span class="n">j</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">])</span>
+                            <span class="c1">#token.tags.append({&quot;cat&quot; : LexiquetoUD[j[&quot;cat&quot;]], &quot;lemme&quot; : j[&quot;lemme&quot;], })</span>
+                            <span class="n">token</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">j</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;X&quot;</span>
+                            <span class="n">token</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                    <span class="n">tagged</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">tagged</span><span class="p">:</span> <span class="c1"># Si le token n&#39;a aucune hypothèse de tag, on regarde s&#39;il fait partie des cas particuliers</span>
+                <span class="k">if</span> <span class="n">digits</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># Si le token est composé de chiffres</span>
+                    <span class="n">token</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;lemme&quot;</span> <span class="p">:</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span> <span class="p">:</span> <span class="s2">&quot;NUM&quot;</span><span class="p">,</span> <span class="s2">&quot;genre&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;nombre&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;freq&quot;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">}]</span>
+
+                <span class="k">elif</span> <span class="n">propn</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># Si le token commence par une majuscule, on dit que c&#39;est un nom propre</span>
+                    <span class="n">token</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;lemme&quot;</span> <span class="p">:</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span> <span class="p">:</span> <span class="s2">&quot;PROPN&quot;</span><span class="p">,</span> <span class="s2">&quot;genre&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;nombre&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;freq&quot;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">}]</span>
+
+                <span class="k">elif</span> <span class="n">punct</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># Si le token n&#39;est ni un espace blanc, ni une lettre alors c&#39;est une ponctuation</span>
+                    <span class="n">token</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;lemme&quot;</span> <span class="p">:</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span> <span class="p">:</span> <span class="s2">&quot;PUNCT&quot;</span><span class="p">,</span> <span class="s2">&quot;genre&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;nombre&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;freq&quot;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">}]</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">token</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;lemme&quot;</span> <span class="p">:</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span> <span class="p">:</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;genre&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;nombre&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;freq&quot;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">}]</span>
+
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LEX</span><span class="se">\t</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">%)</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">pass</span>
+
+    
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@timeit</span>
+    <span class="k">def</span> <span class="nf">_tag</span><span class="p">(</span><span class="n">tokens</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">reference</span><span class="p">:</span> <span class="n">NGramsSM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prend en entrée une liste de tokens analysés lexicalement et une référence (dictionnaire de n-grammes).</span>
+<span class="sd">        Opère directement sur la liste de tokens NodeSM.</span>
+<span class="sd">        Retourne un set des lemmes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Etiquetage en cours...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># On définit une taille minimale de chaîne pour l&#39;analyse en ngrammes</span>
+        <span class="n">window_min</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">n</span><span class="p">])</span>
+
+        <span class="c1"># On crée un buffer des tokens précédents + celui courant et un sac de lemmes (pour les stats)</span>
+        <span class="n">buffer</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lm</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tok</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span> <span class="c1"># On parcours les tokens du texte</span>
+            <span class="n">buffer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="n">window_min</span><span class="p">:])</span> <span class="o">&gt;=</span> <span class="n">window_min</span><span class="p">:</span> 
+                <span class="c1"># Si l&#39;on a plusieurs possibilités de lemmes et un buffer assez grand pour effectuer l&#39;analyse en ngrammes :</span>
+
+                <span class="n">frqs</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># liste des fréquences des combinaisons</span>
+
+                <span class="n">total_freq_tok</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">lemma</span> <span class="ow">in</span> <span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+                    <span class="n">total_freq_tok</span> <span class="o">+=</span> <span class="n">lemma</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span>
+                
+                <span class="k">for</span> <span class="n">lemma</span> <span class="ow">in</span> <span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span> <span class="c1"># Pour chaque lemme possible</span>
+                    
+                    <span class="c1"># On génère une liste des catégories de la combinaison (ex : [&quot;DET&quot;, &quot;NOUN&quot;, &quot;ADJ&quot;])</span>
+                    <span class="n">chain</span> <span class="o">=</span> <span class="p">[</span><span class="n">previous</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">previous</span> <span class="ow">in</span> <span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="n">window_min</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="p">[</span><span class="n">lemma</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">]]</span>
+
+                    <span class="c1"># Si la chaîne fait partie des ngrammes, </span>
+                    <span class="k">if</span> <span class="n">reference</span><span class="o">.</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span> <span class="ow">in</span> <span class="n">reference</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="n">window_min</span><span class="p">:]))]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">frqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="n">reference</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="n">window_min</span><span class="p">:]))]</span> <span class="c1"># taille de ngrammes concernée</span>
+                            <span class="p">[</span><span class="n">reference</span><span class="o">.</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chain</span><span class="p">)]</span> <span class="c1"># le ngramme concerné</span>
+                            <span class="o">/</span> <span class="n">total_freq_tok</span>
+                            <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">frqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span> <span class="c1"># Si le ngramme n&#39;existe pas, alors on considère sa fréquence comme nulle (très peu probable)</span>
+
+                <span class="n">tok</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">)[</span><span class="n">frqs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">frqs</span><span class="p">))]</span> <span class="c1"># On définit le lemme en prenant celui avec la plus haute fréquence </span>
+
+                <span class="k">if</span> <span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s1">&#39;lemme&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s1">&#39;cat&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">lm</span><span class="p">:</span>
+                    <span class="n">lm</span><span class="p">[</span><span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s1">&#39;lemme&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s1">&#39;cat&#39;</span><span class="p">]]</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c1"># On ajoute le lemme à la liste des lemmes</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">lm</span><span class="p">[</span><span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s1">&#39;lemme&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s1">&#39;cat&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tok</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">tags</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TAG</span><span class="se">\t</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">%)</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">lm</span>
+
+    <span class="k">pass</span>
+
+
+    <span class="nd">@timeit</span>
+    <span class="k">def</span> <span class="nf">_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hierarchy</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span><span class="n">HIERARCHY</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NodeSM</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        La fonction &#39;order&#39; découpe le texte tokenisé en différents niveaux imbriqués spécifiés dans &#39;hierarchy&#39; et crée un arbre (non-syntaxiques)</span>
+<span class="sd">        à partir des tokens. Elle renvoie ensuite le noeud maître, qui donne accès par le haut aux données.</span>
+<span class="sd">        hierarchy est un dictionnaire avec le nom et les délimiteurs utilisés, ordonné depuis le plus petit ensemble. Dans la fonction,</span>
+<span class="sd">        les niveaux sont imbriqués, c&#39;est à dire que le niveau 5 ne peut contenir que des éléments de niveau 4, le niveau 4 des éléments de niveau</span>
+<span class="sd">        3 etc. </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Hiérarchisation en cours... </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1">#buffer est une mémoire tampon contenant, pour chaque niveau, les différents noeuds.</span>
+        <span class="c1">#delims est un tableau de chaînes qui contiennent les délimiteurs ; chaque niveau inférieur contient les délimiteurs du niveau supérieur afin</span>
+        <span class="c1"># de les imbriquer.</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">))]</span>
+        <span class="n">delims</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1">#cette boucle génère les différentes chaînes de délimiteurs issus de &#39;hierarchy&#39; </span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">)[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">)[</span><span class="n">i</span><span class="p">:]</span>
+
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">temp</span><span class="p">:</span>
+                <span class="n">delims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">delims</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">[</span><span class="n">c</span><span class="p">])</span>
+
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">):</span>
+            <span class="c1"># On ajoute chaque token au buffer de tokens (niveau 0)</span>
+            <span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">h</span><span class="p">,</span><span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">):</span>
+                <span class="c1"># On parcourt les différents niveaux hiérarchiques pour vérifier si le token appartient à un ou plusieurs d&#39;entre eux</span>
+                <span class="k">if</span> <span class="n">delims</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">token</span><span class="p">))</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="c1">#si on trouve un démarqueur de niveau :</span>
+                    <span class="k">if</span> <span class="n">h</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># On ignore le niveau des tokens (pas de segmentation à y faire)</span>
+                        <span class="n">phrase</span> <span class="o">=</span> <span class="n">NodeSM</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">txt</span><span class="p">)</span> <span class="c1"># On crée un noeud du niveau concerné</span>
+                        <span class="n">phrase</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">key</span>
+                        <span class="n">phrase</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phrase</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="n">key</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+                    
+
+                    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">buffer</span><span class="p">[</span><span class="n">h</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span> <span class="c1"># On rattache tous les noeuds sans parents du niveau précédent au nouveau noeud</span>
+                        <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">parent</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">el</span><span class="o">.</span><span class="n">relateAsChild</span><span class="p">(</span><span class="n">phrase</span><span class="p">)</span>
+
+                    <span class="c1"># On ajoute ce nouveau noeud au buffer</span>
+                    <span class="n">buffer</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phrase</span><span class="p">)</span>
+            
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ORDER</span><span class="se">\t</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">)</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">%)</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Une fois toute la structure finalisée, on crée un noeud final auquel on va raccorder tous les noeuds supérieurs</span>
+        <span class="n">buffer</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">NodeSM</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;texte&quot;</span><span class="p">)])</span>
+
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">groupSetParent</span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][:])</span>
+        <span class="c1"># Si la couche la plus élevée est vide (ça arrive) alors on raccorde à celle en dessous</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NodeSM</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">groupSetParent</span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][:])</span>
+            <span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">groupSetParent</span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][:])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">masterNode</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">hierarchy</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="n">level</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">level</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">level</span><span class="p">)]</span> <span class="o">+</span> <span class="s2">&quot;Len&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;char&quot;</span> <span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;nbChar&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="n">level</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="nb">list</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="n">level</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="s2">&quot;types&quot;</span> <span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="n">level</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="s2">&quot;lemmes&quot;</span> <span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;lemmes&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;nb&quot;</span> <span class="o">+</span> <span class="n">level</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="p">}</span>
+    <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_order_new</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NodeSM</span><span class="p">:</span>
+
+        <span class="n">levels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;weak&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;;&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;strong&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;?&quot;</span><span class="p">,</span> <span class="s2">&quot;!&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;parentheses&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="p">:</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">:</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;«&quot;</span> <span class="p">:</span> <span class="s2">&quot;»&quot;</span><span class="p">,</span> <span class="s2">&quot;[&quot;</span> <span class="p">:</span> <span class="s2">&quot;]&quot;</span><span class="p">,</span> <span class="s2">&quot;(&quot;</span> <span class="p">:</span> <span class="s2">&quot;)&quot;</span><span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="n">buffer</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">masterNode</span><span class="p">:</span> <span class="n">NodeSM</span> <span class="o">=</span> <span class="n">NodeSM</span><span class="p">(</span><span class="s2">&quot;texte&quot;</span><span class="p">,</span> <span class="s2">&quot;texte&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">:</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">lvl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span> <span class="ow">in</span> <span class="n">levels</span><span class="p">[</span><span class="n">lvl</span><span class="p">]:</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="n">lvl</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s1">&#39;cat&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;CCONJ&quot;</span><span class="p">,</span> <span class="s2">&quot;PUNCT&quot;</span><span class="p">):</span>
+
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
+                <span class="n">token</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;chunk&quot;</span>
+
+
+                <span class="c1">#if found == &quot;weak&quot;:</span>
+                <span class="n">token</span><span class="o">.</span><span class="n">groupSetParent</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;elif found == &quot;strong&quot;:</span>
+<span class="sd">                    for c in chunks:</span>
+<span class="sd">                        for tok in c:</span>
+<span class="sd">                            if tok.parent != None:</span>
+<span class="sd">                                token.relateAsParent(tok.parent)</span>
+<span class="sd">                                break</span>
+<span class="sd">                            else:</span>
+<span class="sd">                                token.relateAsParent(tok)&quot;&quot;&quot;</span>
+                <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">masterNode</span><span class="o">.</span><span class="n">relateAsParent</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+                
+                <span class="n">buffer</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">buffer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>           
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">masterNode</span> <span class="o">=</span> <span class="n">masterNode</span>
+    <span class="k">pass</span>
+
+
+    <span class="c1">############################################################################################################</span>
+    <span class="c1">#   Interactions des données</span>
+    <span class="c1">############################################################################################################</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.distance"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.distance">[docs]</a>    <span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">],</span> <span class="n">txt</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">])</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.distance_lemmas"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.distance_lemmas">[docs]</a>    <span class="k">def</span> <span class="nf">distance_lemmas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">DataStatsSM</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lemmas</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">],</span> <span class="n">txt</span><span class="o">.</span><span class="n">lemmas</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">])</span></div>
+    <span class="k">pass</span>
+
+    <span class="c1">############################################################################################################</span>
+    <span class="c1">#   Input/Output</span>
+    <span class="c1">############################################################################################################</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.report"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.report">[docs]</a>    <span class="nd">@timeit</span>
+    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">textname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;txt&quot;</span><span class="p">,</span> <span class="nb">zip</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">graphs</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Exporte le texte en csv, xml et fichier binaire dans un dossier selon un nom attribué</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">textname</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileExistsError</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Dossier </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> existe déjà.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">tsvF</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">textname</span> <span class="o">+</span> <span class="s2">&quot;.tsv&quot;</span><span class="p">)</span>
+        <span class="n">xmlF</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">textname</span> <span class="o">+</span> <span class="s2">&quot;.xml&quot;</span><span class="p">)</span>
+        <span class="n">smF</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">textname</span> <span class="o">+</span> <span class="s2">&quot;.sm&quot;</span><span class="p">)</span>
+        <span class="n">imgVocF</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">textname</span> <span class="o">+</span> <span class="s2">&quot;_vocab.png&quot;</span><span class="p">)</span>
+        <span class="n">imgZipfF</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">textname</span> <span class="o">+</span> <span class="s2">&quot;_zipf.png&quot;</span><span class="p">)</span>
+        <span class="n">jsonF</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">textname</span> <span class="o">+</span> <span class="s2">&quot;_report&quot;</span> <span class="o">+</span> <span class="s2">&quot;.json&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">tsvF</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">to_XML</span><span class="p">(</span><span class="n">xmlF</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">smF</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">jsonF</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;if graphs and &#39;vocCurve&#39; in self.stats.keys():</span>
+<span class="sd">            # On génère le graph du vocabulaire</span>
+<span class="sd">            plt.figure(figsize=(6.4*3, 4.8*3))</span>
+<span class="sd">            plt.plot([i[0] for i in self.stats[&#39;vocCurve&#39;]], [i[1] for i in self.stats[&#39;vocCurve&#39;]])</span>
+<span class="sd">            plt.xlabel(&quot;tokens&quot;)</span>
+<span class="sd">            plt.ylabel(&quot;vocabulaire&quot;)</span>
+<span class="sd">            plt.title(&quot;Evolution du vocabulaire au fil du texte&quot;)</span>
+<span class="sd">            plt.savefig(imgVocF)</span>
+<span class="sd">            plt.clf()</span>
+
+<span class="sd">        if graphs and &#39;zipf&#39; in self.stats.keys():</span>
+<span class="sd">            # On génère le graph des fréquences de formes</span>
+
+<span class="sd">            zipf = [i for i in self.stats[&#39;zipf&#39;] if i[1] &gt; 1]</span>
+<span class="sd">            </span>
+<span class="sd">            zipf = zipf[:100]</span>
+<span class="sd">            plt.figure(figsize=(6.4*3, 4.8*3))</span>
+<span class="sd">            plt.plot([i[0] for i in zipf], [i[1] for i in zipf])</span>
+<span class="sd">            plt.xlabel(&quot;types&quot;)</span>
+<span class="sd">            plt.xticks(rotation=90)</span>
+<span class="sd">            plt.ylabel(&quot;fréquence&quot;)</span>
+<span class="sd">            plt.title(&quot;Types en fonction de leur fréquence&quot;)</span>
+<span class="sd">            plt.savefig(imgZipfF)&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">zip</span><span class="p">:</span>
+            <span class="c1"># On enregistre le tout dans une archive zip</span>
+            <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">textname</span> <span class="o">+</span> <span class="s2">&quot;.zip&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zipO</span><span class="p">:</span>
+                <span class="n">zipO</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tsvF</span><span class="p">)</span>
+                <span class="n">zipO</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">xmlF</span><span class="p">)</span>
+                <span class="n">zipO</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">smF</span><span class="p">)</span>
+                <span class="n">zipO</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">imgVocF</span><span class="p">)</span>
+                <span class="n">zipO</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">imgZipfF</span><span class="p">)</span>
+                <span class="n">zipO</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">jsonF</span><span class="p">)</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.to_csv"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.to_csv">[docs]</a>    <span class="k">def</span> <span class="nf">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Exporte les tokens avec leurs tags dans un fichier tabulé</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hierarchy</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">txt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">token</span><span class="o">.</span><span class="n">tags</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="SegmentedTextSM.to_XML"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.to_XML">[docs]</a>    <span class="k">def</span> <span class="nf">to_XML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Exporte l&#39;arbre du texte dans un fichier xml.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+
+        <span class="n">top</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;SegmentedTextSM&#39;</span><span class="p">)</span>
+        <span class="n">XMLTree</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+
+        <span class="c1">#if self.hierarchy != None:</span>
+        <span class="c1">#    top.set(&quot;hierarchy&quot;, self.hierarchy)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">top</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">parseChildren</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">NodeSM</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+                <span class="n">ch</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">child</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+                    <span class="n">ch</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="n">tag</span><span class="p">]))</span>
+
+                <span class="c1">#ch.set(&quot;struct&quot;, child.struct)</span>
+
+                <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hierarchy</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">txt</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">]:</span>
+                        <span class="n">ch</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">txt</span><span class="p">)</span>
+                        <span class="k">continue</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ch</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">txt</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ch</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">txt</span><span class="p">)</span>
+
+                <span class="n">parseChildren</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">ch</span><span class="p">)</span>
+        <span class="k">pass</span>
+
+        <span class="n">parseChildren</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">masterNode</span><span class="p">,</span> <span class="n">top</span><span class="p">)</span>
+
+        <span class="c1">#ET.indent(XMLTree, &quot;    &quot;)</span>
+
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">and</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">XMLTree</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">xml_declaration</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ET</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">XMLTree</span><span class="o">.</span><span class="n">getroot</span><span class="p">(),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;unicode&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;xml&#39;</span><span class="p">)</span></div>
+            
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.from_xml"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.from_xml">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_xml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Importe un fichier XML contenant un texte SegmentedTextSM</span>
+<span class="sd">        /!\ Les statistiques n&#39;étant pas contenues dans le XML, elles ne seront pas importées ! /!\\</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">tree</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+
+
+            <span class="n">levels</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hierarchy&#39;</span><span class="p">))</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+            <span class="n">tokens</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">masterNode</span><span class="p">:</span> <span class="n">NodeSM</span> <span class="o">=</span> <span class="n">NodeSM</span><span class="p">()</span>
+
+
+            <span class="k">def</span> <span class="nf">parseChildren</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">,</span> <span class="n">dataParent</span><span class="p">:</span> <span class="n">NodeSM</span><span class="p">):</span>
+
+                <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">node</span><span class="p">:</span>
+
+                    <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="n">levels</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">text</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">]:</span>
+                            <span class="n">wrd</span> <span class="o">=</span> <span class="n">NodeSM</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">text</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">)))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">wrd</span> <span class="o">=</span> <span class="n">NodeSM</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                        <span class="n">tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wrd</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">wrd</span> <span class="o">=</span> <span class="n">NodeSM</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                    
+                    <span class="n">wrd</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">child</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">wrd</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="n">attr</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">attr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+                    <span class="n">wrd</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span>
+                    
+                    <span class="n">dataParent</span><span class="o">.</span><span class="n">relateAsParent</span><span class="p">(</span><span class="n">wrd</span><span class="p">,</span> <span class="n">topLevel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">parseChildren</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">wrd</span><span class="p">)</span>
+
+            <span class="n">parseChildren</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">masterNode</span><span class="p">)</span>
+
+            <span class="n">txt</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">)</span>
+            <span class="n">txt</span><span class="o">.</span><span class="n">listObjs</span> <span class="o">=</span> <span class="n">tokens</span>
+            <span class="n">txt</span><span class="o">.</span><span class="n">masterNode</span> <span class="o">=</span> <span class="n">masterNode</span>
+            <span class="n">txt</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+            <span class="k">return</span> <span class="n">txt</span></div>
+
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.save"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sauvegarde un fichier binaire contenant un objet &quot;SegmentedTextSM&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.load"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.load">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Charge un fichier binaire contenant un objet &quot;SegmentedTextSM&quot;, ou une archive contenant ce fichier</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">is_zipfile</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zipO</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">zipO</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.sm&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">obj</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span></div>
+    <span class="k">pass</span>
+
+
+    <span class="c1">############################################################################################################</span>
+    <span class="c1">#   Dunders et recherche</span>
+    <span class="c1">############################################################################################################</span>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seg2</span><span class="p">):</span> <span class="c1"># Nécessite d&#39;être retravaillé</span>
+
+        <span class="n">newData</span> <span class="o">=</span> <span class="n">SegmentedTextSM</span><span class="p">()</span>
+
+        <span class="n">newData</span><span class="o">.</span><span class="n">hierarchy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hierarchy</span>
+        <span class="n">newData</span><span class="o">.</span><span class="n">lemmas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lemmas</span> <span class="o">|</span> <span class="n">seg2</span><span class="o">.</span><span class="n">lemmas</span>
+        <span class="n">newData</span><span class="o">.</span><span class="n">listObjs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span> <span class="o">+</span> <span class="n">seg2</span><span class="o">.</span><span class="n">listObjs</span>
+        <span class="n">newData</span><span class="o">.</span><span class="n">types</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span> <span class="o">|</span> <span class="n">seg2</span><span class="o">.</span><span class="n">types</span>
+
+        <span class="n">newData</span><span class="o">.</span><span class="n">masterNode</span> <span class="o">=</span> <span class="n">NodeSM</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;texte&quot;</span><span class="p">)</span>
+        <span class="n">newData</span><span class="o">.</span><span class="n">masterNode</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">masterNode</span><span class="o">.</span><span class="n">children</span> <span class="o">+</span> <span class="n">seg2</span><span class="o">.</span><span class="n">masterNode</span><span class="o">.</span><span class="n">children</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+            <span class="n">newData</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seg2</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">newData</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">newData</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">seg2</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newData</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">seg2</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">newData</span>
+    <span class="k">pass</span>
+
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">])</span>
+    <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">)</span>
+    <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="bp">self</span>
+    <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">raise</span> <span class="ne">StopIteration</span>
+    <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">txt</span><span class="o">.</span><span class="fm">__hash__</span><span class="p">()</span>
+    <span class="k">pass</span>
+
+
+    <span class="c1">############################################################################################################</span>
+    <span class="c1">#   Recherche (WIP zone, réalisé avant et nécessitant d&#39;être retravaillé)</span>
+    <span class="c1">############################################################################################################</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.remove"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">NodeSM</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.hasInSuccession"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.hasInSuccession">[docs]</a>    <span class="k">def</span> <span class="nf">hasInSuccession</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">needle</span><span class="p">:</span> <span class="n">NodeSM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">listWords</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getListWords</span><span class="p">()</span>
+        <span class="n">i</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">indices</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">has</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needle</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">getNbWords</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">ne</span> <span class="ow">in</span> <span class="n">needle</span><span class="p">:</span>                
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ne</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">listWords</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                    <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">needle</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">ne</span><span class="p">))</span>
+                    <span class="n">needle</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ne</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">needle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span> <span class="o">==</span> <span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">has</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">has</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.has"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.has">[docs]</a>    <span class="k">def</span> <span class="nf">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">needle</span><span class="p">:</span> <span class="n">NodeSM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Retourne si oui ou non, le texte possède le mot ou la liste de mots en entrée. Les mots de la liste sont testés \</span>
+<span class="sd">            de manière discontinue (=non contigue)&#39;&#39;&#39;</span>
+        
+        <span class="n">i</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needle</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">ne</span> <span class="ow">in</span> <span class="n">needle</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ne</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasInSuccession</span><span class="p">(</span><span class="n">ne</span><span class="p">):</span>
+                                <span class="n">needle</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ne</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">ne</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                            <span class="n">needle</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ne</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">needle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">needle</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                    <span class="n">needle</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">needle</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span></div>
+    <span class="k">pass</span>
+
+
+
+<div class="viewcode-block" id="SegmentedTextSM.findIndex"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.findIndex">[docs]</a>    <span class="k">def</span> <span class="nf">findIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">needle</span><span class="p">:</span> <span class="n">NodeSM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Trouve le premier index des mots recherchés. Les index sont retournés dans l&#39;ordre croissant (pas l&#39;ordre des mots).&#39;&#39;&#39;</span>
+
+        <span class="n">result</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">,)</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">needle</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">ne</span> <span class="ow">in</span> <span class="n">needle</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ne</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasInSuccession</span><span class="p">(</span><span class="n">ne</span><span class="p">):</span>
+                                <span class="n">result</span> <span class="o">+=</span> <span class="p">(</span><span class="n">i</span><span class="p">,)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">ne</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                            <span class="n">result</span> <span class="o">+=</span> <span class="p">(</span><span class="n">i</span><span class="p">,)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">needle</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">needle</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">i</span><span class="p">,)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span></div>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="SegmentedTextSM.retrieve"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.retrieve">[docs]</a>    <span class="k">def</span> <span class="nf">retrieve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">needle</span><span class="p">):</span>
+        
+        <span class="n">listWords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getListWords</span><span class="p">()</span>
+
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;for i in range(0, self.getNbWords()):</span>
+<span class="sd">            if needle == listWords[i].getString():</span>
+<span class="sd">                return listWords[i]</span>
+<span class="sd">        return None&#39;&#39;&#39;</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">getNbWords</span><span class="p">():</span><span class="c1"># and needle != listWords[i].getString():</span>
+            <span class="k">if</span> <span class="n">needle</span> <span class="o">==</span> <span class="n">listWords</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">getString</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">listWords</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="SegmentedTextSM.search_seq"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.search_seq">[docs]</a>    <span class="k">def</span> <span class="nf">search_seq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+
+        <span class="n">ind_seq</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">)</span><span class="o">-</span><span class="n">i</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">seq</span><span class="p">[</span><span class="n">ind_seq</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">listObjs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">getString</span><span class="p">():</span>
+                    <span class="n">ind_seq</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">ind_seq</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="n">i</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ind_seq</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
+
+    <span class="k">pass</span></div>
+        
+
+
+<span class="c1">###################################################################################################################################################</span>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          
+          <h3>Table des matières</h3>
+          <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">SegMeant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../SegMeant.html">SegMeant package</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Recherche</h3>
+            <form class="search" action="../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../py-modindex.html" title="Index des modules Python"
+              >modules</a> |
+            <a href="../../../genindex.html" title="Index général"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2023, JeremdY.
+      Créé en utilisant <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

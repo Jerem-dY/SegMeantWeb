@@ -19,3 +19,5 @@ rem call sphinx-apidoc -o docs SegMeant/EngineSM/tree --ext-autodoc -d 6
 rem pause
 cd docs
 call .\make.bat html
+
+xcopy /s /y html .
