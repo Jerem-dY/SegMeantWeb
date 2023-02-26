@@ -1,0 +1,189 @@
+
+<!DOCTYPE html>
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SegMeant.SegMeant &#8212; Documentation SegMeant 1.0</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/agogo.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Recherche" href="../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../index.html">Documentation SegMeant 1.0</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../py-modindex.html" title="Index des modules Python"
+             >modules</a> |
+          <a href="../../genindex.html" title="Index général"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Code source de SegMeant.SegMeant</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">INFORMATIONS GENERALES</span>
+<span class="sd">=========================================================================</span>
+<span class="sd">Cours de Python - M1 Sciences du Langage parcours Industries de la Langue</span>
+<span class="sd">Projet de fin de semestre</span>
+
+<span class="sd">INFORMATIONS SUR LE MODULE</span>
+<span class="sd">=========================================================================</span>
+<span class="sd">:auteur: Jérémy Bourdillat &lt;Jeremy.Bourdillat@etu.univ-grenoble-alpes.fr&gt; et Inès Adjoudj &lt;Ines.Adjoudj@etu.univ-grenoble-alpes.fr&gt;</span>
+<span class="sd">:version: 1.0</span>
+<span class="sd">Python ver. 3.11.1</span>
+
+<span class="sd">OBSERVATIONS</span>
+<span class="sd">=========================================================================</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+
+<span class="kn">from</span> <span class="nn">.EngineSM</span> <span class="kn">import</span> <span class="n">SegmentedTextSM</span>
+<span class="kn">from</span> <span class="nn">.EngineSM.SegmentedTextSM</span> <span class="kn">import</span> <span class="n">SegmentedTextSM</span>
+<span class="kn">from</span> <span class="nn">.EngineSM.statistics</span> <span class="kn">import</span> <span class="n">StatisticsSM</span>
+<span class="kn">from</span> <span class="nn">.EngineSM.resources.NGramsSM</span> <span class="kn">import</span> <span class="n">NGramsSM</span>
+<span class="kn">from</span> <span class="nn">.EngineSM.resources.LexiconSM</span> <span class="kn">import</span> <span class="n">LexiconSM</span>
+<span class="kn">from</span> <span class="nn">.EngineSM.CorpusSM</span> <span class="kn">import</span> <span class="n">CorpusSM</span>
+<span class="kn">from</span> <span class="nn">.EngineSM.tools.CacheSM</span> <span class="kn">import</span> <span class="n">CacheSM</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shelve</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">catGet</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    (?:\#.*\n)*</span>
+<span class="s2">    (</span>
+<span class="s2">    \d{1,3}</span>
+<span class="s2">    (?:\t\w+)</span><span class="si">{2}</span>
+<span class="s2">    \t</span>
+<span class="s2">    (?P&lt;cat&gt;\w+)+</span>
+<span class="s2">    .*\n</span>
+<span class="s2">    )</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">X</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SegMeant"><a class="viewcode-back" href="../../SegMeant.html#SegMeant.SegMeant.SegMeant">[docs]</a><span class="k">class</span> <span class="nc">SegMeant</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;SegMeant/EngineSM/resources/fr_ftb-ud-train.conllu&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">pg</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">ph</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">pg</span> <span class="o">+=</span> <span class="n">line</span>
+                <span class="c1">#if line == &quot;\n&quot;:</span>
+                <span class="n">ph</span> <span class="o">+=</span> <span class="p">[</span><span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">catGet</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">pg</span><span class="p">)</span> <span class="k">if</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+                <span class="n">pg</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+
+        <span class="c1">#self.CACHE = CacheSM()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LEXICON</span> <span class="o">=</span> <span class="n">LexiconSM</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MODEL</span> <span class="o">=</span> <span class="n">NGramsSM</span><span class="p">(</span><span class="n">dic</span><span class="o">=</span><span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;SegMeant/data/tagsStats/ngrams&quot;</span><span class="p">,</span> <span class="n">writeback</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">n</span><span class="o">=</span><span class="p">{</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">},</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="n">txt</span><span class="o">=</span><span class="n">ph</span><span class="p">)</span>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="SegMeant.segment_text_from_file"><a class="viewcode-back" href="../../SegMeant.html#SegMeant.SegMeant.SegMeant.segment_text_from_file">[docs]</a>    <span class="k">def</span> <span class="nf">segment_text_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SegmentedTextSM</span><span class="p">:</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+            <span class="n">txt</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">CACHE</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">txt</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> already in cache. Loading...&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CACHE</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">txt</span><span class="p">]</span>
+
+            <span class="n">doc</span> <span class="o">=</span> <span class="n">SegmentedTextSM</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span> <span class="n">doc_name</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">lexicon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">LEXICON</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">MODEL</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CACHE</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">doc</span></div>
+
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="SegMeant.corpus_from_paths"><a class="viewcode-back" href="../../SegMeant.html#SegMeant.SegMeant.SegMeant.corpus_from_paths">[docs]</a>    <span class="k">def</span> <span class="nf">corpus_from_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CorpusSM</span><span class="p">:</span>
+
+        <span class="n">docs</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="nb">id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CACHE</span><span class="o">.</span><span class="n">get_corpus_id</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">CACHE</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Corpus with </span><span class="si">{0}</span><span class="s2"> texts </span><span class="se">\n</span><span class="s2">[+</span><span class="se">\t</span><span class="si">{1}</span><span class="s2">] already in cache. Loading...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">),</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">+</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">paths</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CACHE</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+            <span class="n">docs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">segment_text_from_file</span><span class="p">(</span><span class="n">file</span><span class="p">))</span>
+
+        <span class="n">corpus</span> <span class="o">=</span> <span class="n">CorpusSM</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CACHE</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">corpus</span></div>
+    <span class="k">pass</span></div>
+<span class="k">pass</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          
+          <h3>Table des matières</h3>
+          <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">SegMeant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../SegMeant.html">SegMeant package</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Recherche</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../py-modindex.html" title="Index des modules Python"
+              >modules</a> |
+            <a href="../../genindex.html" title="Index général"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2023, JeremdY.
+      Créé en utilisant <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
