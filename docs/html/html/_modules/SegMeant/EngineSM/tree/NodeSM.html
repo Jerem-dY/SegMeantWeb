@@ -93,7 +93,23 @@
 <span class="kn">import</span> <span class="nn">json</span>
 
 <div class="viewcode-block" id="NodeSM"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM">[docs]</a><span class="k">class</span> <span class="nc">NodeSM</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Classe pouvant représenter diverses unités linguistiques avec pour point commun la possibilité de former un arbre, permettant de former différentes représentations des éléments de la langue écrite.</span>
+
+<span class="sd">    :param text: la forme graphique portée par le noeud</span>
+<span class="sd">    :type text: str</span>
+<span class="sd">    :param type: le type de noeud (arbitraire, décidé par l&#39;utilisateur)</span>
+<span class="sd">    :type type: str</span>
+<span class="sd">    :param index: un index pour positionner le noeud sur un seul axe (utile pour la sérialisation)</span>
+<span class="sd">    :type idnex: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructeur de la classe.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span> <span class="n">NodeSM</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -105,23 +121,244 @@
     <span class="k">pass</span>
 
 <div class="viewcode-block" id="NodeSM.from_list"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.from_list">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_list</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ls</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_list</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ls</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">indexify</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">start_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Prend une liste de chaines de caractères et retourne une liste d&#39;objets NodeSM</span>
+<span class="sd">        Méthode de classe prenant une liste de chaines de caractères et retournant une liste d&#39;objets NodeSM.</span>
+
+<span class="sd">        :param ls: liste des éléments à transformer en noeuds</span>
+<span class="sd">        :type ls: liste de str</span>
+<span class="sd">        :param indexify: détermine si l&#39;on souhaite indexer les noeuds les uns par rapport aux autres</span>
+<span class="sd">        :type indexify: bool</span>
+<span class="sd">        :param start_index: l&#39;index de départ</span>
+<span class="sd">        :type start_index: int</span>
+<span class="sd">        :return: liste de noeuds</span>
+<span class="sd">        :rtype: liste de :class:`NodeSM`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">cls</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">ls</span><span class="p">]</span></div>
+
+        <span class="k">if</span> <span class="n">indexify</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">cls</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ls</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start_index</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">cls</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">ls</span><span class="p">]</span></div>
     <span class="k">pass</span>
 
-<div class="viewcode-block" id="NodeSM.toJSON"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.toJSON">[docs]</a>    <span class="k">def</span> <span class="nf">toJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="NodeSM.toJSON"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.toJSON">[docs]</a>    <span class="k">def</span> <span class="nf">toJSON</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sérialise récursivement le noeud et ses enfants sous la forme d&#39;une chaîne de caractère formattée en JSON.</span>
+
+<span class="sd">        :param indent: Défini le(s) caractère(s) utilisé(s) pour indenter les éléments et rendre le tout plus lisible pour l&#39;être humain (déconseillé pour être lu par une machine)</span>
+<span class="sd">        :type indent: str</span>
+<span class="sd">        :return: la chaîne au format JSON</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="n">s</span> <span class="o">+=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">txt</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="n">indent</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">s</span> <span class="o">+=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="n">indent</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-            <span class="n">s</span> <span class="o">+=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">toJSON</span><span class="p">(),</span> <span class="n">indent</span><span class="o">=</span><span class="n">indent</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">toJSON</span><span class="p">(</span><span class="n">indent</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="n">indent</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">s</span></div>
     <span class="k">pass</span>
+
+<div class="viewcode-block" id="NodeSM.relateAsParent"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.relateAsParent">[docs]</a>    <span class="k">def</span> <span class="nf">relateAsParent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">topLevel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Défini le noeud courant comme étant le parent de celui passé en argument. Le paramètre &quot;replace&quot; permet de définir si l&#39;on force le remplacement du parent ou non.</span>
+
+<span class="sd">        :param child: Le noeud que l&#39;on souhaite définir comme enfant</span>
+<span class="sd">        :type child: :class:`NodeSM`</span>
+<span class="sd">        :param topLevel: Quand topLevel est activé, cela signifie que l&#39;objet passé en argument va lui aussi être modifié à l&#39;aide de la méthode complémentaire (ici, relateAsChild()), celle-ci</span>
+<span class="sd">        n&#39;étant alors obligatoirement pas topLevel</span>
+<span class="sd">        :type topLevel: bool</span>
+<span class="sd">        :param replace: Défini si l&#39;on doit forcer le remplacement du parent précédent de l&#39;enfant</span>
+<span class="sd">        :type replace: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">replace</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">child</span><span class="o">.</span><span class="n">ind</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">topLevel</span><span class="p">:</span>
+                <span class="n">child</span><span class="o">.</span><span class="n">relateAsChild</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="NodeSM.relateAsChild"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.relateAsChild">[docs]</a>    <span class="k">def</span> <span class="nf">relateAsChild</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">topLevel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Défini le noeud courant comme étant l&#39;enfant de celui passé en argument.</span>
+
+<span class="sd">        :param child: Le noeud que l&#39;on souhaite définir comme parent</span>
+<span class="sd">        :type parent: :class:`NodeSM`</span>
+<span class="sd">        :param topLevel: Quand topLevel est activé, cela signifie que l&#39;objet passé en argument va lui aussi être modifié à l&#39;aide de la méthode complémentaire (ici, relateAsParent()), celle-ci</span>
+<span class="sd">        n&#39;étant alors obligatoirement pas topLevel</span>
+<span class="sd">        :type topLevel: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="k">if</span> <span class="n">topLevel</span><span class="p">:</span>
+            <span class="n">parent</span><span class="o">.</span><span class="n">relateAsParent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="NodeSM.groupSetParent"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.groupSetParent">[docs]</a>    <span class="k">def</span> <span class="nf">groupSetParent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodes</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Permet de définir le noeud courant comme étant le parent d&#39;une liste de noeuds, et ce de manière non-destructive (si un noeud a déjà un parent, il le garde).</span>
+
+<span class="sd">        :param nodes: la liste des noeuds a modifier</span>
+<span class="sd">        :type nodes: une liste de :class:`NodeSM`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">relateAsParent</span><span class="p">(</span><span class="n">n</span><span class="p">)</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="NodeSM.next"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.next">[docs]</a>    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Permet un parcours horizontal de l&#39;arbre sur le même niveau, en récupérant le prochain noeud enfant du même parent.</span>
+
+<span class="sd">        :param iter: de combien d&#39;enfants l&#39;on souhaite avancer</span>
+<span class="sd">        :type iter: int</span>
+<span class="sd">        :return: le noeud demandé</span>
+<span class="sd">        :rtype: :class:`NodeSM`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="nb">iter</span> <span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="nb">iter</span><span class="p">]</span>
+        
+        <span class="k">return</span> <span class="kc">None</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="NodeSM.previous"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.previous">[docs]</a>    <span class="k">def</span> <span class="nf">previous</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Permet un parcours horizontal de l&#39;arbre sur le même niveau, en récupérant le précédent noeud enfant du même parent.</span>
+
+<span class="sd">        :param iter: de combien d&#39;enfants l&#39;on souhaite reculer</span>
+<span class="sd">        :type iter: int</span>
+<span class="sd">        :return: le noeud demandé</span>
+<span class="sd">        :rtype: :class:`NodeSM`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="nb">iter</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="nb">iter</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="NodeSM.delRelations"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.delRelations">[docs]</a>    <span class="k">def</span> <span class="nf">delRelations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Réinitialise toutes les relations du noeud, en le faisant aussi oublier des autres (cela peut entraîner la perte des noeuds sans aucune autre référence).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="p">]</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">c</span><span class="o">.</span><span class="n">parent</span>
+            <span class="k">del</span> <span class="n">c</span></div>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="NodeSM.decapsulate"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.decapsulate">[docs]</a>    <span class="k">def</span> <span class="nf">decapsulate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Récupère la liste des feuilles (noeuds terminaux) accessibles depuis ce noeud.</span>
+
+<span class="sd">        :return: l&#39;ensemble des feuilles auxquelles a accès le noeud.</span>
+<span class="sd">        :rtype: liste de :class:`NodeSM`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">r</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            
+
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+                
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">decapsulate</span><span class="p">()</span>
+                    
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+                    <span class="c1">#print(len(r), r[-1])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="k">return</span> <span class="n">r</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="NodeSM.decapsulateToType"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.decapsulateToType">[docs]</a>    <span class="k">def</span> <span class="nf">decapsulateToType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">childType</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Récupère la première feuille du type demandé.</span>
+
+<span class="sd">        :param childType: le type voulu (arbitraire)</span>
+<span class="sd">        :type childType: str</span>
+<span class="sd">        :return: la feuille du type voulu</span>
+<span class="sd">        :rtype: :class:`NodeSM` ou None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">childType</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">decapsulateToType</span><span class="p">(</span><span class="n">childType</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">r</span></div>
+    
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="NodeSM.encapsulate"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.encapsulate">[docs]</a>    <span class="k">def</span> <span class="nf">encapsulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Récupère le plus haut parent dans l&#39;arbre commun aux noeuds parcourus.</span>
+
+<span class="sd">        :return: le noeud le plus haut</span>
+<span class="sd">        :rtype: :class:`NodeSM` ou None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">encapsulate</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="k">return</span> <span class="n">r</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="NodeSM.getDepth"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.getDepth">[docs]</a>    <span class="k">def</span> <span class="nf">getDepth</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compte le nombre de niveaux qui séparent ce noeud de la première feuille rencontrée.</span>
+
+<span class="sd">        :return: Le nombre de niveaux encore en dessous.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            
+
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+                
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">decapsulate</span><span class="p">()</span>
+                    
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="c1">#print(len(r), r[-1])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="k">return</span> <span class="n">count</span></div>
+    <span class="k">pass</span>
+
+
+
+    <span class="c1">###############################################################################</span>
+    <span class="c1"># DUNDER METHODS</span>
+    <span class="c1">###############################################################################</span>
+
 
     <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
@@ -153,148 +390,9 @@
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">txt</span><span class="p">)</span>
-    <span class="k">pass</span>
-
-<div class="viewcode-block" id="NodeSM.isType"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.isType">[docs]</a>    <span class="k">def</span> <span class="nf">isType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodeType</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodeType</span><span class="p">)</span></div>
-    <span class="k">pass</span>
-
-<div class="viewcode-block" id="NodeSM.relateAsParent"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.relateAsParent">[docs]</a>    <span class="k">def</span> <span class="nf">relateAsParent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">topLevel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">replace</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">child</span><span class="o">.</span><span class="n">ind</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">topLevel</span><span class="p">:</span>
-                <span class="n">child</span><span class="o">.</span><span class="n">relateAsChild</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
-    <span class="k">pass</span>
-
-<div class="viewcode-block" id="NodeSM.relateAsChild"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.relateAsChild">[docs]</a>    <span class="k">def</span> <span class="nf">relateAsChild</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">topLevel</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="k">if</span> <span class="n">topLevel</span><span class="p">:</span>
-            <span class="n">parent</span><span class="o">.</span><span class="n">relateAsParent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
-    <span class="k">pass</span>
-
-<div class="viewcode-block" id="NodeSM.next"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.next">[docs]</a>    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="nb">iter</span> <span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="nb">iter</span><span class="p">]</span>
-        
-        <span class="k">return</span> <span class="kc">None</span></div>
-    <span class="k">pass</span>
-
-<div class="viewcode-block" id="NodeSM.previous"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.previous">[docs]</a>    <span class="k">def</span> <span class="nf">previous</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="nb">iter</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="nb">iter</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="kc">None</span></div>
-
-<div class="viewcode-block" id="NodeSM.delRelations"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.delRelations">[docs]</a>    <span class="k">def</span> <span class="nf">delRelations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind</span>
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
-
-        <span class="n">NodeSM</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
-    <span class="k">pass</span>
-
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;def set_tags(self, tg: str):</span>
-
-<span class="sd">        args = tg.split(&quot;+&quot;)</span>
-<span class="sd">        for a in args:</span>
-<span class="sd">            if &quot;=&quot; in a:</span>
-<span class="sd">                members = a.split(&quot;=&quot;)</span>
-<span class="sd">                self.add_tag(members[0], members[1])</span>
-<span class="sd">            else:</span>
-<span class="sd">                self.add_tag(a, None)</span>
-<span class="sd">    pass&quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="NodeSM.decapsulate"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.decapsulate">[docs]</a>    <span class="k">def</span> <span class="nf">decapsulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1">#sert à récupérer l&#39;enfant qui est le plus en bout d&#39;arbre (=pas d&#39;enfants)</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
-            
-
-            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-                
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
-                    <span class="n">r</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">decapsulate</span><span class="p">()</span>
-                    
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
-                    <span class="c1">#print(len(r), r[-1])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span>
-
-        <span class="k">return</span> <span class="n">r</span></div>
-    <span class="k">pass</span>
-
-
-<div class="viewcode-block" id="NodeSM.getDepth"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.getDepth">[docs]</a>    <span class="k">def</span> <span class="nf">getDepth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">count</span> <span class="o">=</span> <span class="mi">1</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
-            
-
-            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-                
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
-                    <span class="n">r</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">decapsulate</span><span class="p">()</span>
-                    
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
-                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="c1">#print(len(r), r[-1])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span>
-
-        <span class="k">return</span> <span class="n">count</span></div>
-    <span class="k">pass</span>
-
-
-<div class="viewcode-block" id="NodeSM.decapsulateToType"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.decapsulateToType">[docs]</a>    <span class="k">def</span> <span class="nf">decapsulateToType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">childType</span><span class="p">):</span>
-        <span class="c1">#sert à récupérer le noeud le plus bas d&#39;un certains type</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">childType</span><span class="p">):</span>
-                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-                    <span class="n">r</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">decapsulateToType</span><span class="p">(</span><span class="n">childType</span><span class="p">)</span>
-
-        <span class="k">else</span><span class="p">:</span> 
-            <span class="k">return</span> <span class="kc">None</span>
-
-        <span class="k">return</span> <span class="n">r</span></div>
+    <span class="k">pass</span></div>
+<span class="k">pass</span>
     
-    <span class="k">pass</span>
-
-    <span class="c1">###############</span>
-
-<div class="viewcode-block" id="NodeSM.encapsulate"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.encapsulate">[docs]</a>    <span class="k">def</span> <span class="nf">encapsulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1">#sert à récupérer le parent des noeuds (parent commun)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">encapsulate</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span>
-
-        <span class="k">return</span> <span class="n">r</span></div>
-    <span class="k">pass</span>
-
-<div class="viewcode-block" id="NodeSM.groupSetParent"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM.groupSetParent">[docs]</a>    <span class="k">def</span> <span class="nf">groupSetParent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">relateAsParent</span><span class="p">(</span><span class="n">n</span><span class="p">)</span></div>
-    <span class="k">pass</span></div>
-<span class="k">pass</span>
-
-
-<div class="viewcode-block" id="LeafSM"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.LeafSM">[docs]</a><span class="k">class</span> <span class="nc">LeafSM</span><span class="p">(</span><span class="n">NodeSM</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
-    <span class="k">pass</span></div>
-<span class="k">pass</span>
 </pre></div>
 
            </div>

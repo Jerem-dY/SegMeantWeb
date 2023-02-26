@@ -78,9 +78,18 @@
 <span class="kn">import</span> <span class="nn">os</span>
 
 <div class="viewcode-block" id="CorpusSM"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.CorpusSM.CorpusSM">[docs]</a><span class="k">class</span> <span class="nc">CorpusSM</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Classe représentant un ensemble de textes tokenisés et étiquetés, et permettant des traitements groupés ainsi que des tâches de classification.</span>
+
+<span class="sd">    :param documents: une liste de documents bruts ou traités que l&#39;on souhaite rassembler</span>
+<span class="sd">    :type documents: une liste de str ou de :class:`SegmentedTextSM` (pouvant être mélangés)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">documents</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructeur de la classe.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">documents</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">matrices</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
