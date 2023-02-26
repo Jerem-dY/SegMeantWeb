@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Test AJAX</title>
+		<link rel="stylesheet" href="style.css" />
+		<script type="text/javascript" src="jquery-3.6.1.min.js"></script>
+		<script type="text/javascript" src="xml2json.js"></script>
+		<script src="jsonview/dist/jsonview.js"></script>
+	</head>
+	
+	<body>
+        <h2>Récupération de la correction sur le serveur.</h2>
+		<textarea id="text" class="middle" name="text" placeholder="Entrez votre texte ici..."></textarea>
+		<input type="button" id="ok" value="Corriger"></input>
+		<div id="correction"></div>
+		<div class="tree"></div>
+		<script type="text/javascript">
+
+			const tree = jsonview.render(jsonview.create('{"name": "json-view","version": "1.0.0"}'), document.querySelector('.tree'));
+
+			$("#ok").on(
+				{"click" : function(){
+					$.ajax({
+						url : "traitement.php",
+						method : "POST",
+						dataType : "xml",
+						data : "text=" + $("#text").val(),
+						timeout: 20000,
+						success : function(result, status){
+							$("#correction").text(result);
+
+							var doc = result;
+
+							$(".tree").html("");
+							
+							const tree = jsonview.render(jsonview.create(xml2json(doc.documentElement, "")), document.querySelector('.tree'));
+							
+							/*$('#jstree').jstree({
+								core: {
+								data: JSON.parse(xml2json(doc.documentElement, ""))
+								}});*/
+							//doc = new XMLSerializer().serializeToString(result.documentElement);
+						}
+					});
+				}
+			});
+			
+		</script>
+	</body>
+</html>

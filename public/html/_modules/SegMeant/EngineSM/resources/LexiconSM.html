@@ -1,0 +1,326 @@
+
+<!DOCTYPE html>
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SegMeant.EngineSM.resources.LexiconSM &#8212; Documentation SegMeant 1.0</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/agogo.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/translations.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Recherche" href="../../../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../../../index.html">Documentation SegMeant 1.0</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../../../py-modindex.html" title="Index des modules Python"
+             >modules</a> |
+          <a href="../../../../genindex.html" title="Index général"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Code source de SegMeant.EngineSM.resources.LexiconSM</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">INFORMATIONS GENERALES</span>
+<span class="sd">=========================================================================</span>
+<span class="sd">Cours de Python - M1 Sciences du Langage parcours Industries de la Langue</span>
+<span class="sd">Devoir Maison à rendre pour le 05 Décembre 2022</span>
+
+<span class="sd">INFORMATIONS SUR LE MODULE</span>
+<span class="sd">=========================================================================</span>
+<span class="sd">:auteur: Jérémy Bourdillat &lt;Jeremy.Bourdillat@etu.univ-grenoble-alpes.fr&gt;</span>
+<span class="sd">:version: 1.2</span>
+<span class="sd">Python ver. 3.10.7</span>
+
+
+<span class="sd">CHANGELOG</span>
+<span class="sd">=========================================================================</span>
+<span class="sd">    &gt;   Ajout de la prise en compte des potentiels doublons de couple (peu de chance que ça arrive </span>
+<span class="sd">        puisque le fichier n&#39;en contient normalement pas, mais sait-on jamais).</span>
+<span class="sd">    &gt;   Compilation de la regex pour des questions de performances futures.</span>
+<span class="sd">    &gt;   Suppression  de la première ligne, qui ne contient que les en-têtes de colonne</span>
+<span class="sd">    &gt;   Ajout des fonctions to_json() et from_json() pour exporter/importer le lexique en json (permettant</span>
+<span class="sd">        de le recharger en mémoire pour une autre utilisation)</span>
+<span class="sd">    &gt;   Conversion des fréquences en nombre pour pouvoir trier correctement !</span>
+
+<span class="sd">OBSERVATIONS</span>
+<span class="sd">=========================================================================</span>
+<span class="sd">Possibles améliorations :</span>
+<span class="sd">    &gt;   Accès aux formes : créer un système de noeud qui concrétise les lemmes, et permette ainsi d&#39;accéder aux autres formes possibles</span>
+<span class="sd">        d&#39;un même lemme et leurs informations.</span>
+<span class="sd">    &gt;   Générisation de l&#39;expression régulière : permettre à l&#39;utilisateur de choisir lui-même les colonnes qui l&#39;intéressent,</span>
+<span class="sd">        et ainsi permettre une plus grande flexibilité d&#39;utilisation. (problèmes actuels : &quot;catastrophic backtracking&quot; car trop </span>
+<span class="sd">        de quantifieurs imbriqués quand tentative de factoriser l&#39;expression) Solution : passer par un système plus simple qui récupère toutes</span>
+<span class="sd">        les valeurs (via un .split() par exemple) puis offrir le choix des colonnes via une liste d&#39;indices.</span>
+<span class="sd">    &gt;   Framework : lier ce module aux autres développés dans le cadre du cours ; permettre une interopérabilité des différents outils.</span>
+
+<span class="sd">Notes :</span>
+<span class="sd">    &gt;   Il a été décidé d&#39;intégrer la fréquence du lemme dans les livres dans la structure de données, et ce pour deux raisons :</span>
+<span class="sd">        +   D&#39;abord, cela évite d&#39;avoir à stocker cette information à part pour la jeter une fois le tri fait (ce serait du gâchis)</span>
+<span class="sd">        +   Ensuite, il peut être utile de conserver cette information pour permettre à l&#39;utilisateur de trier d&#39;une manière différente sans</span>
+<span class="sd">            que cela ne soit destructeur (= perte de l&#39;ordre original), par exemple en exportant les données ciblées dans un fichier tabulé </span>
+<span class="sd">            (plus lisible que le gros lexique).</span>
+<span class="sd">    &gt;   Bien que dans l&#39;énoncé il soit indiqué des couples [catégorie, lemme], le choix a été fait de garder l&#39;ordre naturel du fichier lexique</span>
+<span class="sd">        [lemme, catégorie] afin de simplifier le code et de récupérer directement le dictionnaire obtenu via l&#39;expression régulière. A noter que</span>
+<span class="sd">        changer l&#39;ordre est faisable assez facilement, mais non sans répercussions possibles sur l&#39;évolutivité :</span>
+<span class="sd">        +   On peut copier dans un nouveau dictionnaire les clés du couple dans le désordre (sachant qu&#39;en python, l&#39;ordre des clés est</span>
+<span class="sd">            garanti être celui d&#39;ajout). Problème : si l&#39;on souhaite ajouter de nouvelles infos à la structure, cela nécessite de réadapter le code</span>
+<span class="sd">            pour les prendre en compte et déterminer leur place.</span>
+<span class="sd">        +   On peut modifier le comportement de l&#39;export : en effet, puisque nos couples sont des dictionnaires, certes l&#39;ordre est garanti mais en théorie</span>
+<span class="sd">            celui-ci n&#39;est pas censé être le plus utilisé, l&#39;avantage du tableau associatif étant d&#39;avoir un accès en O(1) grâce à une clé-objet. Ainsi, si</span>
+<span class="sd">            l&#39;on souhaite un affichage ou un export selon un certain ordre il suffit d&#39;utiliser les bonnes clés dans le bon ordre, ce que peut même déterminer </span>
+<span class="sd">            l&#39;utilisateur en passant par exemple une liste de clés ordonnée à une fonction prévue à cet effet : [&#39;cat&#39;, &#39;lemme&#39;]</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">shelve</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+
+<span class="c1">##########################################################################################################</span>
+<span class="c1"># DEFINITIONS                                                                                            #</span>
+<span class="c1">##########################################################################################################</span>
+
+<div class="viewcode-block" id="LexiconSM"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.LexiconSM.LexiconSM">[docs]</a><span class="k">class</span> <span class="nc">LexiconSM</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Représente un lexique de formes auxquelles sont associés des lemmes, POS et fréquences.</span>
+
+<span class="sd">    Le lexique est un dictionnaire des formes, auxquelles sont associés une liste des différents couples cat/lemme et leur fréquence</span>
+<span class="sd">    sous la forme, là aussi, de dictionnaires pour faciliter l&#39;accès aux données. </span>
+<span class="sd">    Par défaut, les couples sont classés par fréquence décroissante.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># L&#39;expression régulière qui permet de récupérer les informations qui nous intéressent </span>
+    <span class="c1"># (certes, peu évolutif ; c&#39;edt vraiment histoire de s&#39;amuser)</span>
+    <span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    (?P&lt;forme&gt;[^\n\t]*) # on récupère la forme</span>
+<span class="sd">    \t</span>
+<span class="sd">    [^\n\t]* # on ignore la colonne de phonétique</span>
+<span class="sd">    \t </span>
+<span class="sd">    (?P&lt;lemme&gt;[^\n\t]*) # on récupère le lemme (3e colonne)</span>
+<span class="sd">    \t</span>
+<span class="sd">    (?P&lt;cat&gt;[^\n\t]*) # on récupère la catégorie (4e colonne)</span>
+<span class="sd">    \t</span>
+<span class="sd">    ([^\n\t]*\t){3} # on ignore les colonnes qui ne nous intéressent pas</span>
+<span class="sd">    (?P&lt;freq&gt;[^\n\t]*) # on récupère la fréquence (8e colonne)</span>
+<span class="sd">    &quot;&quot;&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">U</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shelf</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">shelve</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lex</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">shelf</span><span class="p">,</span> <span class="n">writeback</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">lex</span> <span class="o">=</span> <span class="p">{}</span>
+
+        
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="LexiconSM.create"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.LexiconSM.LexiconSM.create">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dico_file_name</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="s2">&quot;freq&quot;</span><span class="p">,</span> <span class="n">shelf</span><span class="o">=</span><span class="s2">&quot;SegMeant/EngineSM/resources/lexicon/lexicon&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;lit le fichier ligne par ligne, récupère les informations pertinentes et construit la structure de données.&quot;&quot;&quot;</span>
+
+        <span class="n">lexicon</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">shelf</span><span class="p">)</span>
+
+
+
+        <span class="k">if</span> <span class="n">dico_file_name</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ortho&quot;</span><span class="p">,</span> <span class="s2">&quot;lemme&quot;</span><span class="p">,</span> <span class="s2">&quot;cgram&quot;</span><span class="p">,</span> <span class="s2">&quot;genre&quot;</span><span class="p">,</span> <span class="s2">&quot;nombre&quot;</span><span class="p">,</span> <span class="s2">&quot;freqlemlivres&quot;</span><span class="p">]</span>
+            <span class="n">dico</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="s2">&quot;SegMeant/EngineSM/resources/Lexique383.tsv&quot;</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">dico</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+                
+                <span class="n">freq</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s2">&quot;freqlemlivres&quot;</span><span class="p">))</span>
+                <span class="n">forme</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s2">&quot;ortho&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="n">forme</span><span class="p">):</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;lemme&quot;</span> <span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s2">&quot;lemme&quot;</span><span class="p">),</span> <span class="s2">&quot;cat&quot;</span> <span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s2">&quot;cgram&quot;</span><span class="p">),</span> <span class="s2">&quot;genre&quot;</span> <span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s2">&quot;genre&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s2">&quot;genre&quot;</span><span class="p">))</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;nombre&quot;</span> <span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s2">&quot;nombre&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">notna</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s2">&quot;nombre&quot;</span><span class="p">))</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">sort</span> <span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s2">&quot;freqlemlivres&quot;</span><span class="p">)}</span>
+
+                    <span class="k">if</span> <span class="n">forme</span> <span class="ow">in</span> <span class="n">lexicon</span><span class="o">.</span><span class="n">lex</span><span class="p">:</span>
+                        <span class="n">tk</span> <span class="o">=</span> <span class="n">lexicon</span><span class="o">.</span><span class="n">lex</span><span class="p">[</span><span class="n">forme</span><span class="p">]</span>
+
+                        <span class="k">if</span>  <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tk</span><span class="p">:</span>
+                                    <span class="n">tk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="c1"># Si la clé est déjà présente dans le lexique mais que le couple n&#39;existe pas pour cette forme, alors on rajoute le couple à la liste associée</span>
+                                    <span class="n">lexicon</span><span class="o">.</span><span class="n">lex</span><span class="p">[</span><span class="n">forme</span><span class="p">]</span> <span class="o">=</span> <span class="n">tk</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">lexicon</span><span class="o">.</span><span class="n">lex</span><span class="p">[</span><span class="n">forme</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">]</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;with open(dico_file_name, mode=&quot;r&quot;, encoding=&quot;utf-8&quot;) as f:</span>
+
+<span class="sd">                f.readline() # On supprime les en-têtes de colonne en faisant avancer le curseur à la ligne suivante</span>
+
+<span class="sd">                for line in f: # On parcourt ligne par ligne le fichier, pour éviter de charger en mémoire un fichier potentiellement gigantesque</span>
+
+<span class="sd">                    row = LexiconSM.regex.match(line)</span>
+
+<span class="sd">                    d = row.groupdict() # On récupère un dictionnaire des groupes nommés</span>
+<span class="sd">                    key = d.pop(&quot;forme&quot;) # On récupère la forme et on l&#39;enlève du dictionnaire (elle va constituer la clé dans notre lexique)</span>
+
+<span class="sd">                    d[sort] = float(d[sort]) # On convertit la fréquence en un nombre décimal, pour pouvoir classer par la suite</span>
+
+<span class="sd">                    if key in lexicon.lex:</span>
+<span class="sd">                        tk = lexicon.lex[key] #On stocke une copie de l&#39;objet (obligatoire avec shelve sans writeback)</span>
+<span class="sd">                        if  d not in tk:</span>
+<span class="sd">                            tk.append(d) # Si la clé est déjà présente dans le lexique mais que le couple n&#39;existe pas pour cette forme, alors on rajoute le couple à la liste associée</span>
+<span class="sd">                            lexicon.lex[key] = tk</span>
+<span class="sd">                    else:</span>
+<span class="sd">                        lexicon.lex[key] = [d]&quot;&quot;&quot;</span>
+
+
+            <span class="k">for</span> <span class="n">form</span> <span class="ow">in</span> <span class="n">lexicon</span><span class="o">.</span><span class="n">lex</span><span class="p">:</span> <span class="c1"># Pour chaque forme, on trie ses couples de valeurs selon l&#39;un des attributs (par défaut, la fréquence)</span>
+                <span class="n">lexicon</span><span class="o">.</span><span class="n">lex</span><span class="p">[</span><span class="n">form</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span> <span class="k">lambda</span> <span class="n">couple</span> <span class="p">:</span> <span class="n">couple</span><span class="p">[</span><span class="n">sort</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">lexicon</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="LexiconSM.attr_val"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.LexiconSM.LexiconSM.attr_val">[docs]</a>    <span class="k">def</span> <span class="nf">attr_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retourne la liste des différentes valeurs possibles pour l&#39;attribut demandé (&#39;lemme&#39;, &#39;cat&#39; ou &#39;freq&#39;)&quot;&quot;&quot;</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">couple</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lex</span><span class="p">[</span><span class="n">form</span><span class="p">]:</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">couple</span><span class="p">[</span><span class="n">attr</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">results</span></div>
+    <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Rend itérable l&#39;objet sur son attribut lex (pour récupérer chaque forme et ses couples une par une)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lex</span><span class="p">)</span>
+    <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lex</span><span class="p">,</span> <span class="n">shelve</span><span class="o">.</span><span class="n">Shelf</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lex</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Permet de récupérer les valeurs d&#39;une forme particulière&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lex</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="LexiconSM.to_json"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.LexiconSM.LexiconSM.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Enregistre le lexique dans le fichier json spécifié&quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lex</span><span class="p">),</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="LexiconSM.from_json"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.LexiconSM.LexiconSM.from_json">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Importe un lexique enregistré en json.&quot;&quot;&quot;</span>
+
+        <span class="n">lex</span> <span class="o">=</span> <span class="n">LexiconSM</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">lex</span><span class="o">.</span><span class="n">lex</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">lex</span></div>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="LexiconSM.load"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.LexiconSM.LexiconSM.load">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">shelve</span><span class="o">=</span><span class="s2">&quot;SegMeant/data/lexicon/lexicon&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">shelve</span><span class="p">)</span></div>
+    <span class="k">pass</span></div>
+
+
+<span class="k">pass</span>
+
+
+
+<span class="c1">##########################################################################################################</span>
+<span class="c1"># UTILISATION (tests)                                                                                    #</span>
+<span class="c1">##########################################################################################################</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="c1">#lex = LexiconSM.create(&quot;Lexique/Lexique383.tsv&quot;) # On crée le lexique en transmettant un nom de fichier TSV</span>
+    <span class="n">lex</span> <span class="o">=</span> <span class="n">LexiconSM</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+    <span class="n">lex</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;resources/test.json&quot;</span><span class="p">)</span> <span class="c1"># On exporte le lexique en .json</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;print(lex[&quot;abrité&quot;]) # On affiche l&#39;ensemble des couples associés à la forme &quot;abrité&quot;</span>
+<span class="sd">    print(lex.attr_val(&quot;abrité&quot;, &quot;lemme&quot;)) # On utilise la méthode &#39;attr_val&#39; pour récupérer la valeur d&#39;un attribut pour une forme donnée</span>
+
+
+<span class="sd">    lex = Lexicon.from_json(&quot;test.json&quot;) # Permet de récupérer le lexique </span>
+
+<span class="sd">    for el in lex:</span>
+<span class="sd">        print(el, lex[el]) # On affiche chaque forme avec ses couples de valeurs&quot;&quot;&quot;</span>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          
+          <h3>Table des matières</h3>
+          <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">SegMeant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../SegMeant.html">SegMeant package</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Recherche</h3>
+            <form class="search" action="../../../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../../../py-modindex.html" title="Index des modules Python"
+              >modules</a> |
+            <a href="../../../../genindex.html" title="Index général"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2023, JeremdY.
+      Créé en utilisant <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
