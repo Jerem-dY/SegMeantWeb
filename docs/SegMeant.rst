@@ -15,6 +15,10 @@ Submodules
 SegMeant.SegMeant module
 ------------------------
 
+.. inheritance-diagram:: SegMeant.SegMeant
+   :parts: 1
+   
+
 .. automodule:: SegMeant.SegMeant
    :members:
    :undoc-members:

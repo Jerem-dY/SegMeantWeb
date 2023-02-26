@@ -7,6 +7,10 @@ Submodules
 SegMeant.EngineSM.tree.NodeSM module
 ------------------------------------
 
+.. inheritance-diagram:: SegMeant.EngineSM.tree.NodeSM
+   :parts: 1
+   
+
 .. automodule:: SegMeant.EngineSM.tree.NodeSM
    :members:
    :undoc-members:

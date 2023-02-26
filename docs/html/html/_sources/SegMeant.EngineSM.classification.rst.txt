@@ -7,6 +7,10 @@ Submodules
 SegMeant.EngineSM.classification.ClassificationSM module
 --------------------------------------------------------
 
+.. inheritance-diagram:: SegMeant.EngineSM.classification.ClassificationSM
+   :parts: 1
+   
+
 .. automodule:: SegMeant.EngineSM.classification.ClassificationSM
    :members:
    :undoc-members:

@@ -1,0 +1,104 @@
+@startuml classes
+set namespaceSeparator none
+class "CacheSM" as SegMeantWeb.SegMeant.EngineSM.tools.CacheSM.CacheSM {
+  cache : DbfilenameShelf
+  writeback : bool
+  add(element, id: str) -> None
+  clear() -> None
+  delete(id: str) -> None
+  get_corpus_id(paths: list) -> str
+  isin(id) -> bool
+}
+class "CorpusSM" as SegMeantWeb.SegMeant.EngineSM.CorpusSM.CorpusSM {
+  documents : list
+  matrices : dict
+}
+class "DataStatsSM" as SegMeantWeb.SegMeant.EngineSM.classification.ClassificationSM.DataStatsSM {
+  data : list
+  stats : dict
+}
+class "LeafSM" as SegMeantWeb.SegMeant.EngineSM.tree.NodeSM.LeafSM {
+}
+class "LexiconSM" as SegMeantWeb.SegMeant.EngineSM.resources.LexiconSM.LexiconSM {
+  lex : DbfilenameShelf, dict
+  regex
+  attr_val(form: str, attr: str) -> list
+  create(dico_file_name: str)
+  from_json(fname)
+  load(shelve)
+  to_json(fname: str)
+}
+class "NGramsSM" as SegMeantWeb.SegMeant.EngineSM.resources.NGramsSM.NGramsSM {
+  n : list, set
+  ngrams : NoneType, dict
+  sep : str
+  stop_list : list
+  format(headers: list, sep, newline) -> str
+  relative_frequency() -> dict
+}
+class "NodeSM" as SegMeantWeb.SegMeant.EngineSM.tree.NodeSM.NodeSM {
+  children : list
+  current_index : int
+  ind : int
+  index : int
+  parent : Optional[NodeSM]
+  struct : str
+  tags : dict, list
+  txt : str
+  type : str
+  decapsulate()
+  decapsulateToType(childType)
+  delRelations()
+  encapsulate()
+  from_list(ls: list) -> list
+  getDepth()
+  groupSetParent(nodes)
+  isType(nodeType)
+  next(iter)
+  previous(iter)
+  relateAsChild(parent, topLevel)
+  relateAsParent(child, topLevel, replace)
+  toJSON(indent)
+}
+class "SegMeant" as SegMeantWeb.SegMeant.SegMeant.SegMeant {
+  LEXICON
+  MODEL
+  corpus_from_paths(paths: list) -> CorpusSM
+  segment_text_from_file(path: str) -> SegmentedTextSM
+}
+class "SegmentedTextSM" as SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM {
+  grm
+  hierarchy : dict
+  lemmas : dict
+  levels : dict
+  listObjs : list
+  masterNode
+  name : str
+  stats : dict
+  txt
+  types
+  distance(txt) -> dict
+  distance_lemmas(txt) -> dict
+  findIndex(needle: NodeSM) -> tuple
+  from_xml(filename)
+  has(needle: NodeSM) -> bool
+  hasInSuccession(needle: NodeSM) -> bool
+  load(filename: str)
+  remove(item)
+  report(path: str, textname: str, zip: bool, graphs) -> None
+  retrieve(needle)
+  save(filename: str) -> None
+  search_seq(seq)
+  serialize() -> str
+  to_XML(filename: str) -> None or str
+  to_csv(filename: str) -> None
+}
+SegMeantWeb.SegMeant.EngineSM.tree.NodeSM.LeafSM --|> SegMeantWeb.SegMeant.EngineSM.tree.NodeSM.NodeSM
+SegMeantWeb.SegMeant.EngineSM.classification.ClassificationSM.DataStatsSM --* SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM : lemmas
+SegMeantWeb.SegMeant.EngineSM.classification.ClassificationSM.DataStatsSM --* SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM : types
+SegMeantWeb.SegMeant.EngineSM.resources.LexiconSM.LexiconSM --* SegMeantWeb.SegMeant.SegMeant.SegMeant : LEXICON
+SegMeantWeb.SegMeant.EngineSM.resources.NGramsSM.NGramsSM --* SegMeantWeb.SegMeant.SegMeant.SegMeant : MODEL
+SegMeantWeb.SegMeant.EngineSM.tree.NodeSM.NodeSM --* SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM : masterNode
+SegMeantWeb.SegMeant.EngineSM.tree.NodeSM.NodeSM --o SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM : masterNode
+SegMeantWeb.SegMeant.EngineSM.tree.NodeSM.NodeSM --o SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM : masterNode
+@enduml

@@ -12,6 +12,10 @@ Welcome to SegMeant's documentation!
    
    modules
    SegMeant
+	classification
+	resources
+	tools
+	tree
 	
 
 

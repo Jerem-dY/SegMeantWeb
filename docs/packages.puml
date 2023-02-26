@@ -1,0 +1,49 @@
+@startuml packages
+set namespaceSeparator none
+package "SegMeantWeb.SegMeant" as SegMeantWeb.SegMeant {
+}
+package "SegMeantWeb.SegMeant.EngineSM" as SegMeantWeb.SegMeant.EngineSM {
+}
+package "SegMeantWeb.SegMeant.EngineSM.CorpusSM" as SegMeantWeb.SegMeant.EngineSM.CorpusSM {
+}
+package "SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM" as SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM {
+}
+package "SegMeantWeb.SegMeant.EngineSM.classification" as SegMeantWeb.SegMeant.EngineSM.classification {
+}
+package "SegMeantWeb.SegMeant.EngineSM.classification.ClassificationSM" as SegMeantWeb.SegMeant.EngineSM.classification.ClassificationSM {
+}
+package "SegMeantWeb.SegMeant.EngineSM.resources" as SegMeantWeb.SegMeant.EngineSM.resources {
+}
+package "SegMeantWeb.SegMeant.EngineSM.resources.LexiconSM" as SegMeantWeb.SegMeant.EngineSM.resources.LexiconSM {
+}
+package "SegMeantWeb.SegMeant.EngineSM.resources.NGramsSM" as SegMeantWeb.SegMeant.EngineSM.resources.NGramsSM {
+}
+package "SegMeantWeb.SegMeant.EngineSM.tools" as SegMeantWeb.SegMeant.EngineSM.tools {
+}
+package "SegMeantWeb.SegMeant.EngineSM.tools.CacheSM" as SegMeantWeb.SegMeant.EngineSM.tools.CacheSM {
+}
+package "SegMeantWeb.SegMeant.EngineSM.tools.benchmark" as SegMeantWeb.SegMeant.EngineSM.tools.benchmark {
+}
+package "SegMeantWeb.SegMeant.EngineSM.tree" as SegMeantWeb.SegMeant.EngineSM.tree {
+}
+package "SegMeantWeb.SegMeant.EngineSM.tree.NodeSM" as SegMeantWeb.SegMeant.EngineSM.tree.NodeSM {
+}
+package "SegMeantWeb.SegMeant.SegMeant" as SegMeantWeb.SegMeant.SegMeant {
+}
+SegMeantWeb.SegMeant --> SegMeantWeb.SegMeant
+SegMeantWeb.SegMeant.EngineSM --> SegMeantWeb.SegMeant.EngineSM.CorpusSM
+SegMeantWeb.SegMeant.EngineSM --> SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM
+SegMeantWeb.SegMeant.EngineSM.CorpusSM --> SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM
+SegMeantWeb.SegMeant.EngineSM.CorpusSM --> SegMeantWeb.SegMeant.EngineSM.classification
+SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM --> SegMeantWeb.SegMeant.EngineSM.classification
+SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM --> SegMeantWeb.SegMeant.EngineSM.resources.LexiconSM
+SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM --> SegMeantWeb.SegMeant.EngineSM.resources.NGramsSM
+SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM --> SegMeantWeb.SegMeant.EngineSM.tools.benchmark
+SegMeantWeb.SegMeant.EngineSM.SegmentedTextSM --> SegMeantWeb.SegMeant.EngineSM.tree.NodeSM
+SegMeantWeb.SegMeant.EngineSM.tools.CacheSM --> SegMeantWeb.SegMeant.EngineSM.tools.benchmark
+SegMeantWeb.SegMeant.SegMeant --> SegMeantWeb.SegMeant.EngineSM
+SegMeantWeb.SegMeant.SegMeant --> SegMeantWeb.SegMeant.EngineSM.CorpusSM
+SegMeantWeb.SegMeant.SegMeant --> SegMeantWeb.SegMeant.EngineSM.resources.LexiconSM
+SegMeantWeb.SegMeant.SegMeant --> SegMeantWeb.SegMeant.EngineSM.resources.NGramsSM
+SegMeantWeb.SegMeant.SegMeant --> SegMeantWeb.SegMeant.EngineSM.tools.CacheSM
+@enduml

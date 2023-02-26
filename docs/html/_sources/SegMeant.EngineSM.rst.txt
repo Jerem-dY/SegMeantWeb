@@ -18,6 +18,10 @@ Submodules
 SegMeant.EngineSM.CorpusSM module
 ---------------------------------
 
+.. inheritance-diagram:: SegMeant.EngineSM.CorpusSM
+   :parts: 1
+   
+
 .. automodule:: SegMeant.EngineSM.CorpusSM
    :members:
    :undoc-members:
@@ -25,6 +29,10 @@ SegMeant.EngineSM.CorpusSM module
 
 SegMeant.EngineSM.SegmentedTextSM module
 ----------------------------------------
+
+.. inheritance-diagram:: SegMeant.EngineSM.SegmentedTextSM
+   :parts: 1
+   
 
 .. automodule:: SegMeant.EngineSM.SegmentedTextSM
    :members:

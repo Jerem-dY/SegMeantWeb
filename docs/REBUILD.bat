@@ -2,7 +2,11 @@ call .\make.bat clean
 del *.rst
 pause
 copy CONFIG\index.rst index.rst
+rem call pyreverse ..\SegMeant -o puml
+
+
 pause
+
 cd ..
 rem call sphinx-apidoc -o docs .. --ext-autodoc
 call sphinx-apidoc -o docs SegMeant --ext-autodoc
