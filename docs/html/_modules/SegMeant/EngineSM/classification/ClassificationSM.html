@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SegMeant.EngineSM.statistics.StatisticsSM &#8212; Documentation SegMeant 1.0</title>
+    <title>SegMeant.EngineSM.classification.ClassificationSM &#8212; Documentation SegMeant 1.0</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/agogo.css" />
     <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
@@ -36,7 +36,7 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <h1>Code source de SegMeant.EngineSM.statistics.StatisticsSM</h1><div class="highlight"><pre>
+  <h1>Code source de SegMeant.EngineSM.classification.ClassificationSM</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -55,7 +55,8 @@
 
 
 
-<div class="viewcode-block" id="dice"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.dice">[docs]</a><span class="k">def</span> <span class="nf">dice</span><span class="p">(</span><span class="n">size_a</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">size_b</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">intersection</span><span class="p">:</span><span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+
+<div class="viewcode-block" id="dice"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.dice">[docs]</a><span class="k">def</span> <span class="nf">dice</span><span class="p">(</span><span class="n">size_a</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">size_b</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">intersection</span><span class="p">:</span><span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Retourne l&#39;indice DICE de similarité entre les deux listes :</span>
 <span class="sd">    s(t1, t2) = 2(t1 ∩ t2) / (|t1| + |t2|)</span>
 <span class="sd">    Avec t1 et t2 débarassés des doublons</span>
@@ -68,7 +69,7 @@
 
 <span class="k">pass</span>
 
-<div class="viewcode-block" id="jaccard"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.jaccard">[docs]</a><span class="k">def</span> <span class="nf">jaccard</span><span class="p">(</span><span class="n">size_a</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">size_b</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">intersection</span><span class="p">:</span><span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="jaccard"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.jaccard">[docs]</a><span class="k">def</span> <span class="nf">jaccard</span><span class="p">(</span><span class="n">size_a</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">size_b</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">intersection</span><span class="p">:</span><span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Retourne l&#39;indice jaccard de similarité entre les deux listes :</span>
 <span class="sd">    J(t1, t2) = (t1 ∩ t2) / (t1 ∪ t2)</span>
 <span class="sd">    Avec t1 et t2 débarassés des doublons</span>
@@ -80,7 +81,7 @@
 
 <span class="k">pass</span>
 
-<div class="viewcode-block" id="cosVector"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.cosVector">[docs]</a><span class="k">def</span> <span class="nf">cosVector</span><span class="p">(</span><span class="n">vec1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">vec2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="cosVector"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.cosVector">[docs]</a><span class="k">def</span> <span class="nf">cosVector</span><span class="p">(</span><span class="n">vec1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">vec2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Retourne le cosinus des deux vecteurs de taille égale générés depuis les deux textes étudiés.</span>
 <span class="sd">    cos(v1, v2) = (v1 ∙ v2) / (∥v1∥ * ∥v2∥) = pdtScalaire(v1, v2) / pdtNormes(v1, v2)</span>
 <span class="sd">    &#39;&#39;&#39;</span>
@@ -110,7 +111,7 @@
         <span class="k">return</span> <span class="mi">0</span></div>
 <span class="k">pass</span>
 
-<div class="viewcode-block" id="correlation"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.correlation">[docs]</a><span class="k">def</span> <span class="nf">correlation</span><span class="p">(</span><span class="n">vec1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">vec2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="correlation"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.correlation">[docs]</a><span class="k">def</span> <span class="nf">correlation</span><span class="p">(</span><span class="n">vec1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">vec2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vec1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">vec2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">0</span>
@@ -147,7 +148,7 @@
 
 <span class="k">pass</span>
 
-<div class="viewcode-block" id="linCoef"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.linCoef">[docs]</a><span class="k">def</span> <span class="nf">linCoef</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<div class="viewcode-block" id="linCoef"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.linCoef">[docs]</a><span class="k">def</span> <span class="nf">linCoef</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
 
     <span class="n">down</span> <span class="o">=</span> <span class="p">(</span><span class="n">variance</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">variance</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
@@ -160,7 +161,7 @@
     <span class="k">return</span> <span class="n">up</span> <span class="o">/</span> <span class="n">down</span></div>
 <span class="k">pass</span>
 
-<div class="viewcode-block" id="coVar"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.coVar">[docs]</a><span class="k">def</span> <span class="nf">coVar</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<div class="viewcode-block" id="coVar"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.coVar">[docs]</a><span class="k">def</span> <span class="nf">coVar</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
     
     <span class="n">mean1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="n">mean2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
@@ -181,7 +182,7 @@
     <span class="k">return</span> <span class="n">sumP</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 <span class="k">pass</span>
 
-<div class="viewcode-block" id="variance"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.variance">[docs]</a><span class="k">def</span> <span class="nf">variance</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<div class="viewcode-block" id="variance"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.variance">[docs]</a><span class="k">def</span> <span class="nf">variance</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
     <span class="n">mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
     <span class="n">ecart</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
@@ -197,7 +198,7 @@
 <span class="k">pass</span>
 
 
-<div class="viewcode-block" id="extr_matrice"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.extr_matrice">[docs]</a><span class="k">def</span> <span class="nf">extr_matrice</span><span class="p">(</span><span class="n">mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="extr_matrice"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.extr_matrice">[docs]</a><span class="k">def</span> <span class="nf">extr_matrice</span><span class="p">(</span><span class="n">mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extrait les extrema de la matrice (min et max) et renvoit leurs coordonnées sous la forme d&#39;un dictionnaire.</span>
 
@@ -236,7 +237,7 @@
 
 
 
-<div class="viewcode-block" id="compare"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.compare">[docs]</a><span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="n">vector1</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">vector2</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="compare"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.compare">[docs]</a><span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="n">vector1</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">vector2</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 
 
     <span class="n">intersection</span> <span class="o">=</span> <span class="n">vector1</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">vector2</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
@@ -257,13 +258,13 @@
     <span class="n">out</span><span class="p">[</span><span class="s1">&#39;cos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cosVector</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
     <span class="n">out</span><span class="p">[</span><span class="s1">&#39;coefCorrel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">correlation</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
     <span class="n">out</span><span class="p">[</span><span class="s1">&#39;coefLin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">linCoef</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
-    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;coefVar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cosVector</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;coefVar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coVar</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">out</span></div>
 <span class="k">pass</span>
 
 
-<div class="viewcode-block" id="dist_matrix"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.dist_matrix">[docs]</a><span class="k">def</span> <span class="nf">dist_matrix</span><span class="p">(</span><span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="dist_matrix"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.dist_matrix">[docs]</a><span class="k">def</span> <span class="nf">dist_matrix</span><span class="p">(</span><span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 
     <span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
     <span class="n">mats</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -285,7 +286,7 @@
 
 
 
-<div class="viewcode-block" id="DataStatsSM"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.statistics.html#SegMeant.EngineSM.statistics.StatisticsSM.DataStatsSM">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="DataStatsSM"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.classification.html#SegMeant.EngineSM.classification.ClassificationSM.DataStatsSM">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">DataStatsSM</span><span class="p">:</span>
     <span class="n">data</span><span class="p">:</span> <span class="nb">list</span>
     <span class="n">stats</span><span class="p">:</span> <span class="nb">dict</span>

@@ -40,9 +40,8 @@
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="kn">from</span> <span class="nn">.SegmentedTextSM</span> <span class="kn">import</span> <span class="n">SegmentedTextSM</span>
-<span class="kn">from</span> <span class="nn">.statistics.StatisticsSM</span> <span class="kn">import</span> <span class="n">dist_matrix</span><span class="p">,</span> <span class="n">distance_methods</span>
+<span class="kn">from</span> <span class="nn">.classification</span> <span class="kn">import</span> <span class="n">ClassificationSM</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <div class="viewcode-block" id="CorpusSM"><a class="viewcode-back" href="../../../SegMeant.EngineSM.html#SegMeant.EngineSM.CorpusSM.CorpusSM">[docs]</a><span class="k">class</span> <span class="nc">CorpusSM</span><span class="p">:</span>
 
@@ -63,7 +62,7 @@
                     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">##### Texte </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> : </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">doc</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">documents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SegmentedTextSM</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">doc_name</span><span class="o">=</span><span class="n">doc</span><span class="p">))</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">matrices</span> <span class="o">=</span> <span class="n">dist_matrix</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">documents</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matrices</span> <span class="o">=</span> <span class="n">ClassificationSM</span><span class="o">.</span><span class="n">dist_matrix</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">documents</span><span class="p">])</span>
     <span class="k">pass</span></div>
 
 

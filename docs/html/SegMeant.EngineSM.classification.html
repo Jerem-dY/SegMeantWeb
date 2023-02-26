@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>SegMeant.EngineSM.classification package &#8212; Documentation SegMeant 1.0</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/agogo.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/translations.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Recherche" href="search.html" />
+    <link rel="next" title="SegMeant.EngineSM.resources package" href="SegMeant.EngineSM.resources.html" />
+    <link rel="prev" title="SegMeant.EngineSM package" href="SegMeant.EngineSM.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">Documentation SegMeant 1.0</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="SegMeant.EngineSM.html" title="SegMeant.EngineSM package"
+             accesskey="P">précédent</a> |
+          <a href="SegMeant.EngineSM.resources.html" title="SegMeant.EngineSM.resources package"
+             accesskey="N">suivant</a> |
+          <a href="py-modindex.html" title="Index des modules Python"
+             >modules</a> |
+          <a href="genindex.html" title="Index général"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="segmeant-enginesm-classification-package">
+<h1>SegMeant.EngineSM.classification package<a class="headerlink" href="#segmeant-enginesm-classification-package" title="Lien permanent vers cette rubrique">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Lien permanent vers cette rubrique">¶</a></h2>
+</section>
+<section id="module-SegMeant.EngineSM.classification.ClassificationSM">
+<span id="segmeant-enginesm-classification-classificationsm-module"></span><h2>SegMeant.EngineSM.classification.ClassificationSM module<a class="headerlink" href="#module-SegMeant.EngineSM.classification.ClassificationSM" title="Lien permanent vers cette rubrique">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.DataStatsSM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">DataStatsSM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#DataStatsSM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.DataStatsSM" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.DataStatsSM.data">
+<span class="sig-name descname"><span class="pre">data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.DataStatsSM.data" title="Lien permanent vers cette définition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.DataStatsSM.stats">
+<span class="sig-name descname"><span class="pre">stats</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.DataStatsSM.stats" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><dl class="simple">
+<dt>def compare(self, vector2) -&gt; dict:</dt><dd><p>return super().compare(self.stats, vector2.stats)</p>
+</dd>
+</dl>
+<p>pass</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.coVar">
+<span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">coVar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#coVar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.coVar" title="Lien permanent vers cette définition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.compare">
+<span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">compare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#compare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.compare" title="Lien permanent vers cette définition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.correlation">
+<span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">correlation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vec1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vec2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#correlation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.correlation" title="Lien permanent vers cette définition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.cosVector">
+<span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">cosVector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vec1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vec2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#cosVector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.cosVector" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Retourne le cosinus des deux vecteurs de taille égale générés depuis les deux textes étudiés.
+cos(v1, v2) = (v1 ∙ v2) / (∥v1∥ * ∥v2∥) = pdtScalaire(v1, v2) / pdtNormes(v1, v2)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.dice">
+<span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">dice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size_a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#dice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.dice" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Retourne l’indice DICE de similarité entre les deux listes :
+s(t1, t2) = 2(t1 ∩ t2) / (<a href="#id1"><span class="problematic" id="id2">|t1|</span></a> + <a href="#id3"><span class="problematic" id="id4">|t2|</span></a>)
+Avec t1 et t2 débarassés des doublons</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.dist_matrix">
+<span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">dist_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#dist_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.dist_matrix" title="Lien permanent vers cette définition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.extr_matrice">
+<span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">extr_matrice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#extr_matrice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.extr_matrice" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Extrait les extrema de la matrice (min et max) et renvoit leurs coordonnées sous la forme d’un dictionnaire.</p>
+<p>Entrées :
+-   mat : matrice de réels</p>
+<p>Sorties :
+-   dictionnaire à deux clés : “min” : (x, y), “max”: (x, y)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>x et y sont les coordonnées de la valeur dans la matrice</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.jaccard">
+<span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">jaccard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size_a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intersection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#jaccard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.jaccard" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Retourne l’indice jaccard de similarité entre les deux listes :
+J(t1, t2) = (t1 ∩ t2) / (t1 ∪ t2)
+Avec t1 et t2 débarassés des doublons</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.linCoef">
+<span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">linCoef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#linCoef"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.linCoef" title="Lien permanent vers cette définition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.classification.ClassificationSM.variance">
+<span class="sig-prename descclassname"><span class="pre">SegMeant.EngineSM.classification.ClassificationSM.</span></span><span class="sig-name descname"><span class="pre">variance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SegMeant/EngineSM/classification/ClassificationSM.html#variance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.classification.ClassificationSM.variance" title="Lien permanent vers cette définition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-SegMeant.EngineSM.classification">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SegMeant.EngineSM.classification" title="Lien permanent vers cette rubrique">¶</a></h2>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          
+          <h3>Table des matières</h3>
+          <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">SegMeant</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="SegMeant.html">SegMeant package</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="SegMeant.html">SegMeant package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="SegMeant.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SegMeant.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SegMeant.html#segmeant-segmeant-module">SegMeant.SegMeant module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SegMeant.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Recherche</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="SegMeant.EngineSM.html" title="SegMeant.EngineSM package"
+              >précédent</a> |
+            <a href="SegMeant.EngineSM.resources.html" title="SegMeant.EngineSM.resources package"
+              >suivant</a> |
+            <a href="py-modindex.html" title="Index des modules Python"
+              >modules</a> |
+            <a href="genindex.html" title="Index général"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/SegMeant.EngineSM.classification.rst.txt"
+                rel="nofollow">Montrer le code source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2023, JeremdY.
+      Créé en utilisant <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
