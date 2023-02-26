@@ -16,6 +16,7 @@ distance_methods: set = {
 
 
 
+
 def dice(size_a:int, size_b:int, intersection:list) -> float:
     '''Retourne l'indice DICE de similarité entre les deux listes :
     s(t1, t2) = 2(t1 ∩ t2) / (|t1| + |t2|)
@@ -218,7 +219,7 @@ def compare(vector1: dict, vector2: dict) -> dict:
     out['cos'] = cosVector(v1, v2)
     out['coefCorrel'] = correlation(v1, v2)
     out['coefLin'] = linCoef(v1, v2)
-    out['coefVar'] = cosVector(v1, v2)
+    out['coefVar'] = coVar(v1, v2)
 
     return out
 pass

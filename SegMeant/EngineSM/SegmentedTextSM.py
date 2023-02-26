@@ -26,7 +26,7 @@ import sys
 from .tree.NodeSM import NodeSM
 from .resources.NGramsSM import NGramsSM
 from .resources.LexiconSM import LexiconSM
-from .statistics.StatisticsSM import DataStatsSM
+from .classification import ClassificationSM
 from .tools.benchmark import timeit
 import re
 import os
@@ -97,7 +97,7 @@ class SegmentedTextSM:
     \- |
     [^\s\w]+ |
     \n) 
-""", flags=re.X)
+    """, flags=re.X)
    
     @timeit
     def __init__(self, txt: str or list, lexicon: LexiconSM, model:NGramsSM, *, doc_name: str = "", levels: dict=HIERARCHY):
@@ -134,10 +134,10 @@ class SegmentedTextSM:
             self.stats["nb" + list(levels)[0]] = len(self.listObjs) # On stocke le nombre de tokens
 
             types = [i for i in self.listObjs if i.tags["cat"] not in ["PUNCT", "NUM", "X"]]
-            self.types = DataStatsSM(types, NGramsSM(txt=types, sep=' '))
+            self.types = ClassificationSM.DataStatsSM(types, NGramsSM(txt=types, sep=' '))
 
             lemmas = [i.tags['lemme'] + ':' + i.tags['cat'] for i in self.listObjs]
-            self.lemmas = DataStatsSM(lemmas, NGramsSM(txt=lemmas, sep=' '))
+            self.lemmas = ClassificationSM.DataStatsSM(lemmas, NGramsSM(txt=lemmas, sep=' '))
 
             self.stats['types'] = len(self.types.stats['1'])
             self.stats['lemmes'] = len(self.lemmas.stats['1'])
@@ -460,7 +460,7 @@ class SegmentedTextSM:
     pass
 
     def distance_lemmas(self, txt) -> dict:
-        return DataStatsSM.compare(self.lemmas.stats.ngrams['1'], txt.lemmas.stats.ngrams['1'])
+        return ClassificationSM.DataStatsSM.compare(self.lemmas.stats.ngrams['1'], txt.lemmas.stats.ngrams['1'])
     pass
 
     ############################################################################################################

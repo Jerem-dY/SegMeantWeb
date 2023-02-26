@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from .SegmentedTextSM import SegmentedTextSM
-from .statistics.StatisticsSM import dist_matrix, distance_methods
+from .classification import ClassificationSM
 import os
-import numpy as np
 
 class CorpusSM:
 
@@ -24,7 +23,7 @@ class CorpusSM:
                     print(f"\n\n##### Texte {i} : \"{doc}\"")
                     self.documents.append(SegmentedTextSM(f, doc_name=doc))
 
-        self.matrices = dist_matrix([i.types.stats.ngrams['1'] for i in self.documents])
+        self.matrices = ClassificationSM.dist_matrix([i.types.stats.ngrams['1'] for i in self.documents])
     pass
 
 
