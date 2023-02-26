@@ -22,13 +22,15 @@
 
     //print mb_detect_encoding(htmlentities($cmd, ENT_COMPAT, 'UTF-8'));
     //print $cmd;
-    $return = shell_exec($cmd);
+    exec($cmd, $return);
 
-    echo $return;
+    //echo end($return);
 
-    $xml_string = simplexml_load_string(utf8_encode($return));
+    //$byte_array = unpack('C*', $return[count($return)-2]);
 
-    print $xml_string;
+    $xml_string = end($return);
+
+    print json_encode($xml_string);
 
     /*$document = new DOMDocument();
     $document->loadXML($xml_string);

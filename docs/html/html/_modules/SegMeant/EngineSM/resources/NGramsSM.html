@@ -157,7 +157,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">_projection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">print_keys</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">print_children_keys</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<div class="viewcode-block" id="NGramsSM._projection"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.NGramsSM.NGramsSM._projection">[docs]</a>    <span class="k">def</span> <span class="nf">_projection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">print_keys</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">print_children_keys</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Générateur qui projette l&#39;arborescence de données sur une liste d&#39;une seule dimension, </span>
 <span class="sd">        pouvant optionnellement contenir les identifieurs de chaque couple clé valeur.</span>
@@ -179,18 +179,18 @@
             <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
                 <span class="c1"># Sinon on ajoute normalement la valeur à la liste</span>
                 <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
-            <span class="k">yield</span> <span class="n">row</span> <span class="c1"># A chaque itération, on renvoie la projection d&#39;un élément et de ses valeurs</span>
+            <span class="k">yield</span> <span class="n">row</span> <span class="c1"># A chaque itération, on renvoie la projection d&#39;un élément et de ses valeurs</span></div>
 
     <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">_to_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="NGramsSM._to_row"><a class="viewcode-back" href="../../../../SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.NGramsSM.NGramsSM._to_row">[docs]</a>    <span class="k">def</span> <span class="nf">_to_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Générateur qui retourne une chaîne représentant une ligne de tableau, adaptée à l&#39;export en CSV ou TSV&quot;&quot;&quot;</span>
 
         <span class="c1"># Pour chaque n-gramme dont les données sont ramenées sur une seule ligne, </span>
         <span class="c1"># on génère une chaîne de caractère des valeurs séparées par un séparateur.</span>
         <span class="k">for</span> <span class="n">lvl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_projection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ngrams</span><span class="p">[</span><span class="n">lvl</span><span class="p">]):</span>
-                <span class="k">yield</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span></div>
     <span class="k">pass</span>
 
 

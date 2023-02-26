@@ -24,7 +24,7 @@ class NodeSM:
         self.parent: NodeSM = None
         self.ind: int = 0
         self.children: list = []
-        self.tags: list = []
+        self.tags: list = {}
         self.struct: str = ""
         self.txt = text
         self.type = type
@@ -39,13 +39,13 @@ class NodeSM:
         return [cls(el) for el in ls]
     pass
 
-    def toJSON(self):
+    def toJSON(self, indent='\t'):
         s = ""
-        s += json.dumps(self.txt, indent='\t', ensure_ascii=False)
-        s += json.dumps(self.tags, indent='\t', ensure_ascii=False)
+        s += json.dumps(self.txt, indent=indent, ensure_ascii=False)
+        s += json.dumps(self.tags, indent=indent, ensure_ascii=False)
 
         for el in self.children:
-            s += json.dumps(el.toJSON(), indent='\t', ensure_ascii=False)
+            s += json.dumps(el.toJSON(), indent=indent, ensure_ascii=False)
 
         return s
     pass

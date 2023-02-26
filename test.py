@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-import SegMeant as SM
-#from .SegMeant import SegmentedTextSM
+from SegMeant.SegMeant import SegmentedTextSM, SegMeant
 import argparse
 import sys
 import os
@@ -23,10 +22,10 @@ if __name__ == "__main__":
     f = open(os.devnull, 'w')
     sys.stdout = f
 
-    sm = SM.SegMeant()
+    sm = SegMeant()
 
 
-    doc = SM.SegmentedTextSM(text, doc_name="test", lexicon=sm.LEXICON, model=sm.MODEL)
+    doc = SegmentedTextSM(text, doc_name="test", lexicon=sm.LEXICON, model=sm.MODEL)
 
     sys.stdout = output
     f.close()
@@ -34,7 +33,7 @@ if __name__ == "__main__":
     """for i, token in enumerate(doc.listObjs):
         print(f"{i}: {token.txt}\t{token.tags}<br>")"""
     
-    print(doc.to_XML())
+    print(doc.serialize())
 
     
     

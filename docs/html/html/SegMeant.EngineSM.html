@@ -72,6 +72,8 @@
 <li class="toctree-l3"><a class="reference internal" href="SegMeant.EngineSM.resources.html#id2">INFORMATIONS SUR LE MODULE</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SegMeant.EngineSM.resources.html#id3">OBSERVATIONS</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.NGramsSM.NGramsSM"><code class="docutils literal notranslate"><span class="pre">NGramsSM</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.NGramsSM.NGramsSM._projection"><code class="docutils literal notranslate"><span class="pre">NGramsSM._projection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.NGramsSM.NGramsSM._to_row"><code class="docutils literal notranslate"><span class="pre">NGramsSM._to_row()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.NGramsSM.NGramsSM.format"><code class="docutils literal notranslate"><span class="pre">NGramsSM.format()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.NGramsSM.NGramsSM.relative_frequency"><code class="docutils literal notranslate"><span class="pre">NGramsSM.relative_frequency()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.NGramsSM.NGramsSM.stop_list"><code class="docutils literal notranslate"><span class="pre">NGramsSM.stop_list</span></code></a></li>
@@ -207,6 +209,41 @@ et de générer des statistiques personnalisées.</p>
 - Permettre l’export de différentes représentations du texte (lemmes, formes, statistiques diverses, phrases, etc.)
 - Permettre une représentation en mémoire simple et accessible pour une utilisation facile en tant que bibliothèque externe</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM._lexicalize">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_lexicalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.LexiconSM.LexiconSM" title="SegMeant.EngineSM.resources.LexiconSM.LexiconSM"><span class="pre">LexiconSM</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/SegmentedTextSM.html#SegmentedTextSM._lexicalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM._lexicalize" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Procède à l’analyse lexicale des tokens, en déterminant toutes les possibilités de lemme à partir d’un lexique</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM._order">
+<span class="sig-name descname"><span class="pre">_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hierarchy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{'clause':</span> <span class="pre">',;:',</span> <span class="pre">'paragraph':</span> <span class="pre">'\n',</span> <span class="pre">'sentence':</span> <span class="pre">'.?!',</span> <span class="pre">'token':</span> <span class="pre">''}</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM" title="SegMeant.EngineSM.tree.NodeSM.NodeSM"><span class="pre">NodeSM</span></a></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/SegmentedTextSM.html#SegmentedTextSM._order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM._order" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>La fonction “order” découpe le texte tokenisé en différents niveaux imbriqués spécifiés dans “hierarchy” et crée un arbre (non-syntaxiques)
+à partir des tokens. Elle renvoie ensuite le noeud maître, qui donne accès par le haut aux données.
+hierarchy est un dictionnaire avec le nom et les délimiteurs utilisés, ordonné depuis le plus petit ensemble. Dans la fonction,
+les niveaux sont imbriqués, c’est à dire que le niveau 5 ne peut contenir que des éléments de niveau 4, le niveau 4 des éléments de niveau
+3 etc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM._order_new">
+<span class="sig-name descname"><span class="pre">_order_new</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="SegMeant.EngineSM.tree.html#SegMeant.EngineSM.tree.NodeSM.NodeSM" title="SegMeant.EngineSM.tree.NodeSM.NodeSM"><span class="pre">NodeSM</span></a></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/SegmentedTextSM.html#SegmentedTextSM._order_new"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM._order_new" title="Lien permanent vers cette définition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM._tag">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="SegMeant.EngineSM.resources.html#SegMeant.EngineSM.resources.NGramsSM.NGramsSM" title="SegMeant.EngineSM.resources.NGramsSM.NGramsSM"><span class="pre">NGramsSM</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/SegmentedTextSM.html#SegmentedTextSM._tag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM._tag" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Prend en entrée une liste de tokens analysés lexicalement et une référence (dictionnaire de n-grammes).
+Opère directement sur la liste de tokens NodeSM.
+Retourne un set des lemmes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM._tokenize">
+<span class="sig-name descname"><span class="pre">_tokenize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regex</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/SegmentedTextSM.html#SegmentedTextSM._tokenize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM._tokenize" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Tokenise la chaîne de caractères à l’aide d’une expression régulière.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.distance">
 <span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txt</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/SegmentedTextSM.html#SegmentedTextSM.distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.distance" title="Lien permanent vers cette définition">¶</a></dt>
 <dd></dd></dl>
@@ -279,6 +316,11 @@ et de générer des statistiques personnalisées.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.serialize">
+<span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/SegmentedTextSM.html#SegmentedTextSM.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.serialize" title="Lien permanent vers cette définition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.to_XML">
 <span class="sig-name descname"><span class="pre">to_XML</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/SegmentedTextSM.html#SegmentedTextSM.to_XML"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.to_XML" title="Lien permanent vers cette définition">¶</a></dt>
 <dd><p>Exporte l’arbre du texte dans un fichier xml.</p>
@@ -286,7 +328,7 @@ et de générer des statistiques personnalisées.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.to_csv">
-<span class="sig-name descname"><span class="pre">to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/SegmentedTextSM.html#SegmentedTextSM.to_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.to_csv" title="Lien permanent vers cette définition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/SegMeant/EngineSM/SegmentedTextSM.html#SegmentedTextSM.to_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SegMeant.EngineSM.SegmentedTextSM.SegmentedTextSM.to_csv" title="Lien permanent vers cette définition">¶</a></dt>
 <dd><p>Exporte les tokens avec leurs tags dans un fichier tabulé</p>
 </dd></dl>
 

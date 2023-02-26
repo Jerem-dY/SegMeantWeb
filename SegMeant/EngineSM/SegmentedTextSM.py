@@ -222,6 +222,8 @@ class SegmentedTextSM:
 
             for txt in versions:
 
+                token.tags = []
+
                 if txt in lexicon.lex.keys(): # Si le token est dans le lexique :
                     lemmas = lexicon[txt] # On récupère la liste des lemmes et leur catégorie
                     for j in lemmas:
@@ -527,19 +529,43 @@ class SegmentedTextSM:
                 zipO.write(jsonF)
     pass
 
-    def to_csv(self, filename: str) -> None:
+
+    def serialize(self) -> str:
+        """
+        
+        """
+
+        linear: dict = {}
+        for i, token in enumerate(self.listObjs):
+            tags = {"text" : token.txt}
+            tags.update(token.tags)
+            linear[str(i)] = tags
+
+        tree: dict = self.to_XML()
+
+        return json.dumps({"linear" : linear, "tree" : tree, "stats" : self.stats}, ensure_ascii=False)
+
+    pass
+
+    def to_csv(self, filename: str = None) -> None:
         """
         Exporte les tokens avec leurs tags dans un fichier tabulé
         """
 
-        with open(filename, mode="w", encoding="utf-8") as f:
-            f.write(list(self.hierarchy)[0] + '\t' + '\t'.join(self.listObjs[0].tags.keys()) + '\n')
-            for token in self.listObjs:
-                if token.txt not in ('\n', '\t', '\r'):
-                    if isinstance(token.tags, list):
-                        f.write(str(token) + "\t" + '\t'.join(token.tags) + '\n')
-                    elif isinstance(token.tags, dict):
-                        f.write(str(token) + "\t" + '\t'.join([str(token.tags[i]) for i in token.tags]) + '\n')
+        out: str = list(self.hierarchy)[0] + '\t' + '\t'.join(self.listObjs[0].tags.keys()) + '\n'
+
+        for token in self.listObjs:
+            if token.txt not in ('\n', '\t', '\r'):
+                if isinstance(token.tags, list):
+                    out += str(token) + "\t" + '\t'.join(token.tags) + '\n'
+                elif isinstance(token.tags, dict):
+                    out += str(token) + "\t" + '\t'.join([str(token.tags[i]) for i in token.tags]) + '\n'
+
+        if filename != None:
+            with open(filename, mode="w", encoding="utf-8") as f:
+                f.write(out)
+
+        return out
     pass
 
 

@@ -12,7 +12,6 @@ Welcome to SegMeant's documentation!
    
    modules
    SegMeant
-   EngineSM
 	
 
 
