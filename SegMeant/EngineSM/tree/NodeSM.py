@@ -112,10 +112,9 @@ class NodeSM:
         """
         Défini le noeud courant comme étant l'enfant de celui passé en argument.
 
-        :param child: Le noeud que l'on souhaite définir comme parent
+        :param parent: Le noeud que l'on souhaite définir comme parent
         :type parent: :class:`NodeSM`
-        :param topLevel: Quand topLevel est activé, cela signifie que l'objet passé en argument va lui aussi être modifié à l'aide de la méthode complémentaire (ici, relateAsParent()), celle-ci
-        n'étant alors obligatoirement pas topLevel
+        :param topLevel: Quand topLevel est activé, cela signifie que l'objet passé en argument va lui aussi être modifié à l'aide de la méthode complémentaire (ici, relateAsParent()), celle-ci n'étant alors obligatoirement pas topLevel
         :type topLevel: bool
         """
 
