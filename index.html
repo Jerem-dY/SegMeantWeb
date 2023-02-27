@@ -3,12 +3,17 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>SegMeant</title>
+		<link rel="stylesheet" href="scripts/treant/Treant.css" type="text/css"/>
 		<link rel="stylesheet" href="style/style.css" />
 		<script type="text/javascript" src="scripts/jquery-3.6.1.min.js"></script>
-		<script type="text/javascript" src="scripts/xml2json.js"></script>
+		<script src="scripts/xml2json.min.js"></script>
 		<script src="scripts/jsonview/dist/jsonview.js"></script>
 		<script src="scripts/json2table.js"></script>
 		<script src="scripts/JSON5.min.js"></script>
+		<script src="scripts/treant/vendor/raphael.js"></script>
+		<script src="scripts/treant/Treant.js"></script>
+		<script src="scripts/tree.js"></script>
+		
 	</head>
 	
 	<body>
@@ -29,7 +34,7 @@
 				<div id="tabletab" class="tabcontent" hidden>
 				</div>
 				<div id="treetab" class="tabcontent" hidden>
-					<div class="tree"></div>
+					<div id="tree-simple"> </div>
 				</div>
 			</section>
 			
@@ -91,7 +96,7 @@
 				}
 			);
 
-			const tree = jsonview.render(jsonview.create('{"name": "json-view","version": "1.0.0"}'), document.querySelector('.tree'));
+			//const tree = jsonview.render(jsonview.create('{"name": "json-view","version": "1.0.0"}'), document.querySelector('.tree'));
 
 			$("#ok").on(
 				{"click" : function(){
@@ -110,13 +115,14 @@
 
 							//jsonview.render(jsonview.create(xml2json(doc.documentElement, "")), document.querySelector('.tree'));
 
-							parser = new DOMParser();
-    						xmlDoc = parser.parseFromString(doc["tree"], "text/xml");
+							//parser = new DOMParser();
+    						//xmlDoc = parser.parseFromString(doc["tree"], "text/xml");
 							
-							const tree = jsonview.render(jsonview.create(xml2json(xmlDoc, "")), document.querySelector('.tree'));
+							var tree = create_chart(doc.tree, "#tree-simple");
+							//const tree = jsonview.render(jsonview.create(xml2json(xmlDoc, "")), document.querySelector('.tree'));
 
 							//jsonview.expand(tree)
-							let table = tableFromJson(doc["linear"]);
+							let table = tableFromJson(doc.linear);
 
 							document.querySelector("div#tabletab").appendChild(table)
 							

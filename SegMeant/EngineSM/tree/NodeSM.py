@@ -17,7 +17,12 @@ OBSERVATIONS
 - revoir les fonctions d'encapsulation et de désencapsulation
 '''
 
+#TODO Diviser les fonctionnalités en plusieurs classes
+#TODO Ajouter des fonctions d'adjonction, de substitution, etc.
+
 import json
+from enum import Enum, auto
+from typing import Sequence
 
 class NodeSM:
     """
@@ -31,8 +36,13 @@ class NodeSM:
     :type idnex: int
     """
 
+    class Route(Enum):
+        CONTAINED = auto()
+        LOOP = auto()
+        THROUGH = auto()
+    pass
 
-    def __init__(self, text: str = "", type: str = "token", index=0):
+    def __init__(self, index=0):
         """
         Constructeur de la classe.
         """
@@ -40,10 +50,6 @@ class NodeSM:
         self.parent: NodeSM = None
         self.ind: int = 0
         self.children: list = []
-        self.tags: list = {}
-        self.struct: str = ""
-        self.txt = text
-        self.type = type
         self.index = index
     pass
 
@@ -69,6 +75,7 @@ class NodeSM:
     pass
 
     def toJSON(self, indent='\t') -> str:
+        #TODO
         """
         Sérialise récursivement le noeud et ses enfants sous la forme d'une chaîne de caractère formattée en JSON.
 
@@ -79,24 +86,34 @@ class NodeSM:
         """
 
         s = ""
-        s += json.dumps(self.txt, indent=indent, ensure_ascii=False)
-        s += json.dumps(self.tags, indent=indent, ensure_ascii=False)
 
-        for el in self.children:
-            s += json.dumps(el.toJSON(indent), indent=indent, ensure_ascii=False)
+        for key in self.__dict__:
+            if isinstance(self.__dict__[key], NodeSM):
+                s += self.__dict__[key].toJSON(indent)
+            elif isinstance(self.__dict__[key], Sequence):
+                for el in self.__dict__[key]:
+                    pass#s += el.toJSON(indent)
+            else:
+                s += json.dumps(self.__dict__[key],  indent=indent, ensure_ascii=False)
 
         return s
     pass
 
-    def relateAsParent(self, child, topLevel: bool = True, replace: bool = False) -> None:
+    def updateIndex(self) -> None:
+        """
+        
+        """
+
+        for i, c in enumerate(self.children):
+            c.ind = i
+    pass
+
+    def relateAsParent(self, child, replace: bool = False) -> None:
         """
         Défini le noeud courant comme étant le parent de celui passé en argument. Le paramètre "replace" permet de définir si l'on force le remplacement du parent ou non.
 
         :param child: Le noeud que l'on souhaite définir comme enfant
         :type child: :class:`NodeSM`
-        :param topLevel: Quand topLevel est activé, cela signifie que l'objet passé en argument va lui aussi être modifié à l'aide de la méthode complémentaire (ici, relateAsChild()), celle-ci
-        n'étant alors obligatoirement pas topLevel
-        :type topLevel: bool
         :param replace: Défini si l'on doit forcer le remplacement du parent précédent de l'enfant
         :type replace: bool
         """
@@ -104,23 +121,19 @@ class NodeSM:
         if replace or self.parent == None:
             child.ind = len(self.children)
             self.children.append(child)
-            if topLevel:
-                child.relateAsChild(self, False)
+            child.parent = self
     pass
 
-    def relateAsChild(self, parent, topLevel: bool = True) -> None:
+    def relateAsChild(self, parent) -> None:
         """
         Défini le noeud courant comme étant l'enfant de celui passé en argument.
 
         :param parent: Le noeud que l'on souhaite définir comme parent
         :type parent: :class:`NodeSM`
-        :param topLevel: Quand topLevel est activé, cela signifie que l'objet passé en argument va lui aussi être modifié à l'aide de la méthode complémentaire (ici, relateAsParent()), celle-ci n'étant alors obligatoirement pas topLevel
-        :type topLevel: bool
         """
 
         self.parent = parent
-        if topLevel:
-            parent.relateAsParent(self, False)
+        parent.children.append(self)
     pass
 
     def groupSetParent(self, nodes: list) -> None:
@@ -135,34 +148,55 @@ class NodeSM:
             self.relateAsParent(n)
     pass
 
-    def next(self, iter: int = 0):
+    def next(self, route=Route.CONTAINED):
         """
         Permet un parcours horizontal de l'arbre sur le même niveau, en récupérant le prochain noeud enfant du même parent.
 
-        :param iter: de combien d'enfants l'on souhaite avancer
-        :type iter: int
+        :param route: Route.LOOP si l'on souhaite revenir au premier enfant ou Route.THROUGH si l'on souhaite passer au premier enfant du parent suivant si l'on a atteint le dernier enfant
+        :type route: une valeur de :class:`Route`
         :return: le noeud demandé
         :rtype: :class:`NodeSM`
         """
 
-        if self.parent != None and len(self.parent.children) > self.ind+1+iter :
-            return self.parent.children[self.ind+1+iter]
+        if self.parent != None:
+            if len(self.parent.children) > self.ind+1:
+                return self.parent.children[self.ind+1]
+            else:
+                if route == self.Route.LOOP:
+                    return self.parent.children[0]
+                elif route == self.Route.THROUGH:
+
+                    new_p = self.parent.next()
+
+                    if new_p != None and len(new_p.children) > 0:
+                        return new_p.children[0]
+
         
         return None
     pass
 
-    def previous(self, iter: int = 0):
+    def previous(self, route=Route.CONTAINED):
         """
         Permet un parcours horizontal de l'arbre sur le même niveau, en récupérant le précédent noeud enfant du même parent.
 
-        :param iter: de combien d'enfants l'on souhaite reculer
-        :type iter: int
+        :param route: Route.LOOP si l'on souhaite revenir au dernier enfant ou Route.THROUGH si l'on souhaite passer au dernier enfant du parent précédent si l'on a atteint le dernier enfant
+        :type route: une valeur de :class:`Route`
         :return: le noeud demandé
         :rtype: :class:`NodeSM`
         """
 
-        if self.parent != None and self.ind-1+iter>=0:
-            return self.parent.children[self.ind-1+iter]
+        if self.parent != None:
+            if self.ind > 0:
+                return self.parent.children[self.ind-1]
+            else:
+                if route == self.Route.LOOP:
+                    return self.parent.children[-1]
+                elif route == self.Route.THROUGH:
+
+                    new_p = self.parent.previous()
+
+                    if new_p != None and len(new_p.children) > 0:
+                        return new_p.children[-1]
 
         return None
 
@@ -172,7 +206,7 @@ class NodeSM:
         """
 
         del self.parent.children[self.ind]
-        del self.parent
+        self.parent = None
         del self.ind
 
         for c in self.children:
@@ -307,15 +341,36 @@ class NodeSM:
         return self.children[item]
     pass
 
+
+
+    
+pass
+
+
+class LexicalEntity:
+    def __init__(self, text: str = "", type: str = "token"):
+        self.attributes: dict = {}
+        self.form = text
+        self.type = type
+    pass
+
+    def __repr__(self):
+        return repr(self.form)
+    pass
+pass
+
+
+class LexicalNodeSM(NodeSM, LexicalEntity):
+
+    def __init__(self, text: str = "", type: str = "token", index=0):
+        NodeSM.__init__(self, index)
+        LexicalEntity.__init__(self, text, type)
+    pass
+
     def __str__(self):
-        s: list = [self.txt] if self.txt != '' else []
+        s: list = [self.form] if self.form != '' else []
         for child in self.children:
             s.append(repr(child)[1:-1])
         return ' '.join(s)
     pass
-
-    def __repr__(self):
-        return repr(self.txt)
-    pass
 pass
-    

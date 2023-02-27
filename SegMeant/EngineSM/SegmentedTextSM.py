@@ -20,10 +20,9 @@ OBSERVATIONS
 '''
 
 import ast
-import html
 import pickle
 import sys
-from .tree.NodeSM import NodeSM
+from .tree.NodeSM import LexicalNodeSM
 from .resources.NGramsSM import NGramsSM
 from .resources.LexiconSM import LexiconSM
 from .classification import ClassificationSM
@@ -133,10 +132,10 @@ class SegmentedTextSM:
 
             self.stats["nb" + list(levels)[0]] = len(self.listObjs) # On stocke le nombre de tokens
 
-            types = [i for i in self.listObjs if i.tags["cat"] not in ["PUNCT", "NUM", "X"]]
+            types = [i for i in self.listObjs if i.attributes["cat"] not in ["PUNCT", "NUM", "X"]]
             self.types = ClassificationSM.DataStatsSM(types, NGramsSM(txt=types, sep=' '))
 
-            lemmas = [i.tags['lemme'] + ':' + i.tags['cat'] for i in self.listObjs]
+            lemmas = [i.attributes['lemme'] + ':' + i.attributes['cat'] for i in self.listObjs]
             self.lemmas = ClassificationSM.DataStatsSM(lemmas, NGramsSM(txt=lemmas, sep=' '))
 
             self.stats['types'] = len(self.types.stats['1'])
@@ -154,10 +153,10 @@ class SegmentedTextSM:
             cmptr = 0
             for i, t in enumerate(self.listObjs):
                 
-                if t.tags["cat"] not in ["PUNCT", "NUM", "X"]:
-                    if t.txt not in ty:
+                if t.attributes["cat"] not in ["PUNCT", "NUM", "X"]:
+                    if t.form not in ty:
                         cmptr += 1
-                        ty.add(t.txt)
+                        ty.add(t.form)
 
                 if (i+1)%100 == 0:
                     # On crée un point dans la courbe du vocabulaire tous les 100 tokens
@@ -188,13 +187,13 @@ class SegmentedTextSM:
                 for tok in regex.findall(line):
                     if tok != '':
                         cmptr += 1
-                        out += [NodeSM(tok, index=cmptr)]
+                        out += [LexicalNodeSM(tok, index=cmptr)]
                 self.stats["nbChar"] += len(line)
             return out
 
         else:
             self.stats["nbChar"] = len(txt)
-            return [NodeSM(tok, index=i) for i, tok in enumerate(regex.findall(txt)) if tok != '']
+            return [LexicalNodeSM(tok, index=i) for i, tok in enumerate(regex.findall(txt)) if tok != '']
     pass
 
     
@@ -217,13 +216,13 @@ class SegmentedTextSM:
 
             # On teste avec deux versions : une normale et une en minuscule. L'idée est de prendre en compte les
             # noms propres d'une part, et les mots en début de phrase (donc avec majuscule) d'autre part
-            versions: list = [token.txt, token.txt.lower(), token.txt[:-1] if token.txt[:-1] == "'" else token.txt, token.txt[:-1] if token.txt[:-1] == "’" else token.txt, 
-                token.txt[:-1].lower() if token.txt[:-1] == "'" else token.txt.lower(), token.txt[:-1].lower() if token.txt[:-1] == "’" else token.txt.lower()] 
+            versions: list = [token.form, token.form.lower(), token.form[:-1] if token.form[:-1] == "'" else token.form, token.form[:-1] if token.form[:-1] == "’" else token.form, 
+                token.form[:-1].lower() if token.form[:-1] == "'" else token.form.lower(), token.form[:-1].lower() if token.form[:-1] == "’" else token.form.lower()] 
             tagged: bool = False
 
             for txt in versions:
 
-                token.tags = []
+                token.attributes = []
 
                 if txt in lexicon.lex.keys(): # Si le token est dans le lexique :
                     lemmas = lexicon[txt] # On récupère la liste des lemmes et leur catégorie
@@ -232,25 +231,25 @@ class SegmentedTextSM:
                             j["cat"] = LexiquetoUD[j["cat"]]
                             j["freq"] = float(j["freq"])
                             #token.tags.append({"cat" : LexiquetoUD[j["cat"]], "lemme" : j["lemme"], })
-                            token.tags.append(j)
+                            token.attributes.append(j)
                         else:
                             j["cat"] = "X"
-                            token.tags.append(j)
+                            token.attributes.append(j)
                     tagged = True
                     break
 
             if not tagged: # Si le token n'a aucune hypothèse de tag, on regarde s'il fait partie des cas particuliers
-                if digits.match(token.txt) != None: # Si le token est composé de chiffres
-                    token.tags = [{"lemme" : token.txt, "cat" : "NUM", "genre" : "", "nombre" : "", "freq" : np.nan}]
+                if digits.match(token.form) != None: # Si le token est composé de chiffres
+                    token.attributes = [{"lemme" : token.form, "cat" : "NUM", "genre" : "", "nombre" : "", "freq" : np.nan}]
 
-                elif propn.match(token.txt) != None: # Si le token commence par une majuscule, on dit que c'est un nom propre
-                    token.tags = [{"lemme" : token.txt, "cat" : "PROPN", "genre" : "", "nombre" : "", "freq" : np.nan}]
+                elif propn.match(token.form) != None: # Si le token commence par une majuscule, on dit que c'est un nom propre
+                    token.attributes = [{"lemme" : token.form, "cat" : "PROPN", "genre" : "", "nombre" : "", "freq" : np.nan}]
 
-                elif punct.match(token.txt) != None: # Si le token n'est ni un espace blanc, ni une lettre alors c'est une ponctuation
-                    token.tags = [{"lemme" : token.txt, "cat" : "PUNCT", "genre" : "", "nombre" : "", "freq" : np.nan}]
+                elif punct.match(token.form) != None: # Si le token n'est ni un espace blanc, ni une lettre alors c'est une ponctuation
+                    token.attributes = [{"lemme" : token.form, "cat" : "PUNCT", "genre" : "", "nombre" : "", "freq" : np.nan}]
 
                 else:
-                    token.tags = [{"lemme" : token.txt, "cat" : "X", "genre" : "", "nombre" : "", "freq" : np.nan}]
+                    token.attributes = [{"lemme" : token.form, "cat" : "X", "genre" : "", "nombre" : "", "freq" : np.nan}]
 
             sys.stdout.write(f"LEX\t{i+1:>8} / {len(tokens):<8} ({round(i/len(tokens)*100, 1)}%)\r")
 
@@ -262,7 +261,7 @@ class SegmentedTextSM:
     def _tag(tokens: list, reference: NGramsSM) -> dict:
         """
         Prend en entrée une liste de tokens analysés lexicalement et une référence (dictionnaire de n-grammes).
-        Opère directement sur la liste de tokens NodeSM.
+        Opère directement sur la liste de tokens LexicalNodeSM.
         Retourne un set des lemmes
         """
 
@@ -279,19 +278,19 @@ class SegmentedTextSM:
             buffer.append(tok)
 
 
-            if len(tok.tags) > 1 and len(buffer[-window_min:]) >= window_min: 
+            if len(tok.attributes) > 1 and len(buffer[-window_min:]) >= window_min: 
                 # Si l'on a plusieurs possibilités de lemmes et un buffer assez grand pour effectuer l'analyse en ngrammes :
 
                 frqs: list = [] # liste des fréquences des combinaisons
 
                 total_freq_tok = 0
-                for lemma in tok.tags:
+                for lemma in tok.attributes:
                     total_freq_tok += lemma["freq"]
                 
-                for lemma in tok.tags: # Pour chaque lemme possible
+                for lemma in tok.attributes: # Pour chaque lemme possible
                     
                     # On génère une liste des catégories de la combinaison (ex : ["DET", "NOUN", "ADJ"])
-                    chain = [previous.tags["cat"] for previous in buffer[-window_min:-1]] + [lemma["cat"]]
+                    chain = [previous.attributes["cat"] for previous in buffer[-window_min:-1]] + [lemma["cat"]]
 
                     # Si la chaîne fait partie des ngrammes, 
                     if reference.sep.join(chain) in reference[str(len(buffer[-window_min:]))].keys():
@@ -303,15 +302,15 @@ class SegmentedTextSM:
                     else:
                         frqs.append(np.nan) # Si le ngramme n'existe pas, alors on considère sa fréquence comme nulle (très peu probable)
 
-                tok.tags = list(tok.tags)[frqs.index(max(frqs))] # On définit le lemme en prenant celui avec la plus haute fréquence 
+                tok.attributes = list(tok.attributes)[frqs.index(max(frqs))] # On définit le lemme en prenant celui avec la plus haute fréquence 
 
-                if tok.tags['lemme'] + ':' + tok.tags['cat'] in lm:
-                    lm[tok.tags['lemme'] + ':' + tok.tags['cat']] += 1 # On ajoute le lemme à la liste des lemmes
+                if tok.attributes['lemme'] + ':' + tok.attributes['cat'] in lm:
+                    lm[tok.attributes['lemme'] + ':' + tok.attributes['cat']] += 1 # On ajoute le lemme à la liste des lemmes
                 else:
-                    lm[tok.tags['lemme'] + ':' + tok.tags['cat']] = 1
+                    lm[tok.attributes['lemme'] + ':' + tok.attributes['cat']] = 1
 
             else:
-                tok.tags = list(tok.tags)[0]
+                tok.attributes = list(tok.attributes)[0]
 
 
             sys.stdout.write(f"TAG\t{i+1:>8} / {len(tokens):<8} ({round(i/len(tokens)*100, 1)}%)\r")
@@ -322,7 +321,7 @@ class SegmentedTextSM:
 
 
     @timeit
-    def _order(self, hierarchy: dict =HIERARCHY) -> NodeSM:
+    def _order(self, hierarchy: dict =HIERARCHY) -> LexicalNodeSM:
         '''
         La fonction 'order' découpe le texte tokenisé en différents niveaux imbriqués spécifiés dans 'hierarchy' et crée un arbre (non-syntaxiques)
         à partir des tokens. Elle renvoie ensuite le noeud maître, qui donne accès par le haut aux données.
@@ -358,7 +357,7 @@ class SegmentedTextSM:
                 if delims[h].find(str(token)) != -1:
                     #si on trouve un démarqueur de niveau :
                     if h > 0: # On ignore le niveau des tokens (pas de segmentation à y faire)
-                        phrase = NodeSM(token.txt) # On crée un noeud du niveau concerné
+                        phrase = LexicalNodeSM(token.form) # On crée un noeud du niveau concerné
                         phrase.type = key
                         phrase.index = len(self.levels[key])
                         self.levels[key].append(phrase)
@@ -380,14 +379,14 @@ class SegmentedTextSM:
             sys.stdout.write(f"ORDER\t{i+1:>8} / {len(self.listObjs):<8} ({round(i/len(self.listObjs)*100, 1)}%)\r")
 
         # Une fois toute la structure finalisée, on crée un noeud final auquel on va raccorder tous les noeuds supérieurs
-        buffer.append([NodeSM("", "texte")])
+        buffer.append([LexicalNodeSM("", "texte")])
 
 
         if len(buffer[-2]) > 0:
             buffer[-1][0].groupSetParent(buffer[-2][:])
         # Si la couche la plus élevée est vide (ça arrive) alors on raccorde à celle en dessous
         else:
-            buffer[-2].append(NodeSM("", list(hierarchy)[-1]))
+            buffer[-2].append(LexicalNodeSM("", list(hierarchy)[-1]))
             self.stats["nb" + list(hierarchy)[-1]] = 1
             buffer[-2][0].groupSetParent(buffer[-3][:])
             buffer[-1][0].groupSetParent(buffer[-2][:])
@@ -404,7 +403,7 @@ class SegmentedTextSM:
                 }
     pass
 
-    def _order_new(self) -> NodeSM:
+    def _order_new(self) -> LexicalNodeSM:
 
         levels = {
             "weak" : [",", ":", ";"],
@@ -415,17 +414,17 @@ class SegmentedTextSM:
         buffer: list = []
         chunks: list = []
 
-        masterNode: NodeSM = NodeSM("texte", "texte")
+        masterNode: LexicalNodeSM = LexicalNodeSM("texte", "texte")
 
         for token in self.listObjs:
             found = ""
 
             for i, lvl in enumerate(levels):
-                if token.txt in levels[lvl]:
+                if token.form in levels[lvl]:
                     found = lvl
                     break
 
-            if token.tags['cat'] in ("CCONJ", "PUNCT"):
+            if token.attributes['cat'] in ("CCONJ", "PUNCT"):
 
                 chunks.append(buffer)
                 token.type = "chunk"
@@ -538,11 +537,11 @@ class SegmentedTextSM:
 
         linear: dict = {}
         for i, token in enumerate(self.listObjs):
-            tags = {"text" : token.txt}
-            tags.update(token.tags)
+            tags = {"text" : token.form}
+            tags.update(token.attributes)
             linear[str(i)] = tags
 
-        tree: dict = self.to_XML()
+        tree: dict = self.to_dict()
 
         return json.dumps({"linear" : linear, "tree" : tree, "stats" : self.stats}, ensure_ascii=False)
 
@@ -553,14 +552,14 @@ class SegmentedTextSM:
         Exporte les tokens avec leurs tags dans un fichier tabulé
         """
 
-        out: str = list(self.hierarchy)[0] + '\t' + '\t'.join(self.listObjs[0].tags.keys()) + '\n'
+        out: str = list(self.hierarchy)[0] + '\t' + '\t'.join(self.listObjs[0].attributes.keys()) + '\n'
 
         for token in self.listObjs:
-            if token.txt not in ('\n', '\t', '\r'):
-                if isinstance(token.tags, list):
-                    out += str(token) + "\t" + '\t'.join(token.tags) + '\n'
-                elif isinstance(token.tags, dict):
-                    out += str(token) + "\t" + '\t'.join([str(token.tags[i]) for i in token.tags]) + '\n'
+            if token.form not in ('\n', '\t', '\r'):
+                if isinstance(token.tattributesags, list):
+                    out += str(token) + "\t" + '\t'.join(token.attributes) + '\n'
+                elif isinstance(token.attributes, dict):
+                    out += str(token) + "\t" + '\t'.join([str(token.attributes[i]) for i in token.attributes]) + '\n'
 
         if filename != None:
             with open(filename, mode="w", encoding="utf-8") as f:
@@ -586,23 +585,23 @@ class SegmentedTextSM:
         if self.name != "":
             top.set("name", self.name)
 
-        def parseChildren(node: NodeSM, parent):
+        def parseChildren(node: LexicalNodeSM, parent):
             for child in node.children:
                 ch = ET.SubElement(parent, child.type)
 
-                for tag in child.tags:
-                    ch.set(tag, str(child.tags[tag]))
+                for tag in child.attributes:
+                    ch.set(tag, str(child.attributes[tag]))
 
                 #ch.set("struct", child.struct)
 
                 if child.type == list(self.hierarchy)[0]:
-                    if child.txt in ['\n', '\r', '\t']:
-                        ch.text = repr(child.txt)
+                    if child.form in ['\n', '\r', '\t']:
+                        ch.text = repr(child.form)
                         continue
                     else:
-                        ch.text = child.txt
+                        ch.text = child.form
                 else:
-                    ch.set("token", child.txt)
+                    ch.set("token", child.form)
 
                 parseChildren(child, ch)
         pass
@@ -619,6 +618,37 @@ class SegmentedTextSM:
             
     pass
 
+    def to_dict(self) -> dict:
+
+        def parseChildren(node: LexicalNodeSM):
+
+            out: dict = {"text" : {}, "children" : [], "stackChildren" : "true", "collapsable" : "true", 
+                         "innerHTML" : f"<table><thead></thead><tr><th></th><th><b>{node.form}</b></th><th><i>{node.type}</i></th><th></th></tr><tbody><tr>|||</tr></tbody></table>"}
+
+            s = ""
+            for key in node.attributes:
+                s += "<td>" + str(node.attributes[key]) + "</td>"
+                
+            out["innerHTML"] = out["innerHTML"].replace("|||", s)
+
+            for child in node.children:
+                
+                #out["text"]["title"] = child.form
+                """out["text"]["desc"] = {}
+                for tag in child.attributes:
+                    out["text"]["desc"][tag] = child.attributes[tag]"""
+
+                #ch.set("struct", child.struct)
+                out["children"].append(parseChildren(child))
+
+            return out
+        pass
+
+        #s = json.dumps(parseChildren(self.masterNode), ensure_ascii=False)
+
+        return parseChildren(self.masterNode)
+
+
     @classmethod
     def from_xml(cls, filename):
         """
@@ -634,25 +664,25 @@ class SegmentedTextSM:
             levels: dict = ast.literal_eval(root.get('hierarchy'))
             name = root.get("name")
             tokens: list[str] = []
-            masterNode: NodeSM = NodeSM()
+            masterNode: LexicalNodeSM = LexicalNodeSM()
 
 
-            def parseChildren(node: ET.Element, dataParent: NodeSM):
+            def parseChildren(node: ET.Element, dataParent: LexicalNodeSM):
 
                 for child in node:
 
                     if child.tag == list(levels)[0]:
                         if child.text in ['\n', '\r', '\t']:
-                            wrd = NodeSM(text=str(ast.literal_eval("'" + child.text + "'")))
+                            wrd = LexicalNodeSM(text=str(ast.literal_eval("'" + child.text + "'")))
                         else:
-                            wrd = NodeSM(text=child.text)
+                            wrd = LexicalNodeSM(text=child.text)
                         tokens.append(wrd)
                     else:
-                        wrd = NodeSM(text=child.text)
+                        wrd = LexicalNodeSM(text=child.text)
                     
-                    wrd.tags: dict = {}
+                    wrd.attributes: dict = {}
                     for attr in child.items():
-                        wrd.tags[attr[0]] = attr[1]
+                        wrd.attributes[attr[0]] = attr[1]
 
                     wrd.type = child.tag
                     
@@ -712,7 +742,7 @@ class SegmentedTextSM:
         newData.listObjs = self.listObjs + seg2.listObjs
         newData.types = self.types | seg2.types
 
-        newData.masterNode = NodeSM(type="texte")
+        newData.masterNode = LexicalNodeSM(type="texte")
         newData.masterNode.children = self.masterNode.children + seg2.masterNode.children
 
         for key in self.stats:
@@ -763,7 +793,7 @@ class SegmentedTextSM:
         if not item in self:
             raise ValueError
 
-        if isinstance(item, NodeSM):
+        if isinstance(item, LexicalNodeSM):
             self.listObjs.remove(item)
         elif isinstance(item, str):
             for obj in self.listObjs:
@@ -771,7 +801,7 @@ class SegmentedTextSM:
                     self.listObjs.remove(obj)
     pass
 
-    def hasInSuccession(self, needle: NodeSM) -> bool:
+    def hasInSuccession(self, needle: LexicalNodeSM) -> bool:
         listWords: list = self.getListWords()
         i: int = 0
         indices: list = []
@@ -798,7 +828,7 @@ class SegmentedTextSM:
         return has
     pass
 
-    def has(self, needle: NodeSM) -> bool:
+    def has(self, needle: LexicalNodeSM) -> bool:
         '''Retourne si oui ou non, le texte possède le mot ou la liste de mots en entrée. Les mots de la liste sont testés \
             de manière discontinue (=non contigue)'''
         
@@ -829,7 +859,7 @@ class SegmentedTextSM:
 
 
 
-    def findIndex(self, needle: NodeSM) -> tuple:
+    def findIndex(self, needle: LexicalNodeSM) -> tuple:
         '''Trouve le premier index des mots recherchés. Les index sont retournés dans l'ordre croissant (pas l'ordre des mots).'''
 
         result: tuple(int,) = ()
