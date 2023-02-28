@@ -3,17 +3,17 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>SegMeant</title>
-		<link rel="stylesheet" href="scripts/treant/Treant.css" type="text/css"/>
+		<link rel="stylesheet" href="style/Treant.css" type="text/css"/>
 		<link rel="stylesheet" href="style/style.css" />
-		<script type="text/javascript" src="scripts/jquery-3.6.1.min.js"></script>
-		<script src="scripts/xml2json.min.js"></script>
-		<script src="scripts/jsonview/dist/jsonview.js"></script>
-		<script src="scripts/json2table.js"></script>
-		<script src="scripts/JSON5.min.js"></script>
-		<script src="scripts/treant/vendor/raphael.js"></script>
-		<script src="scripts/treant/Treant.js"></script>
-		<script src="scripts/tree.js"></script>
-        <script src="scripts/pagemap.min.js"></script>
+		<script type="text/javascript" src="scripts/js/jquery-3.6.1.min.js"></script>
+		<script src="scripts/js/xml2json.min.js"></script>
+		<script src="scripts/js/jsonview.js"></script>
+		<script src="scripts/js/json2table.js"></script>
+		<script src="scripts/js/JSON5.min.js"></script>
+		<script src="scripts/js/treant/vendor/raphael.js"></script>
+		<script src="scripts/js/treant/Treant.js"></script>
+		<script src="scripts/js/tree.js"></script>
+        <script src="scripts/js/pagemap.min.js"></script>
 		
 	</head>
 	
@@ -132,7 +132,7 @@
 					
             var result = <?php
                     putenv("LC_ALL=en_US.UTF-8");
-                    $cmd = "python3 test.py "."\"".$_POST["text"]."\"";
+                    $cmd = "python3 scripts/python/test.py "."\"".$_POST["text"]."\"";
 
                     exec($cmd, $return);
 

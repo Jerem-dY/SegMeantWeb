@@ -16,7 +16,6 @@ Welcome to SegMeant's documentation!
 	resources
 	tools
 	tree
-	
 
 
 Indices and tables

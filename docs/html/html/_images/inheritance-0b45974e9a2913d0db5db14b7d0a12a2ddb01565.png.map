@@ -1,0 +1,5 @@
+<map id="inheritance1d980baa49" name="inheritance1d980baa49">
+<area shape="rect" id="node1" href="#SegMeant.EngineSM.tree.NodeSM.LexicalEntity" target="_top" title="LexicalEntity" alt="" coords="5,5,107,31"/>
+<area shape="rect" id="node2" href="#SegMeant.EngineSM.tree.NodeSM.LexicalNodeSM" target="_top" title="LexicalNodeSM" alt="" coords="53,79,171,104"/>
+<area shape="rect" id="node3" href="#SegMeant.EngineSM.tree.NodeSM.NodeSM" target="_top" title="Classe pouvant représenter diverses unités linguistiques avec pour point commun la possibilité de former un arbre, permettant de former différentes représentations des éléments de la langue écrite." alt="" coords="131,5,207,31"/>
+</map>
