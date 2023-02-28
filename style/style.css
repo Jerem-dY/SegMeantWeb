@@ -106,7 +106,7 @@ input[type=button]:hover
 
 .middle
 {
-    background-color: rgba(255, 0, 0, 0.557);
+    background-color: rgba(249, 220, 220, 0.865);
     width:100%;
     display:flex;
     flex-direction: column;
@@ -115,7 +115,7 @@ input[type=button]:hover
 }
 
 
-.toggleBtn
+.tablinks
 {
     opacity: 0.4;
     background-color: red;
@@ -127,28 +127,22 @@ input[type=button]:hover
     transition: 0.3s;
 }
 
-.toggleBtn:hover 
+.tablinks:hover 
 {
     background-color: #ddd;
 }
 
-.tabcontent 
-{
-    
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-}
 
-.tab button:hover 
+/*button.tablinks:hover, button.tablinks:focus
 {
     background-color: #ddd;
+    color: #333;
 }
   
-.tab button.active 
+button.tablinks.active 
 {
     background-color: #ccc;
-}
+}*/
 
 #tabs
 {
@@ -157,3 +151,73 @@ input[type=button]:hover
     flex-direction: column;
 }
 
+.sidebar
+{
+    height: 100%;
+    width: 10%;
+    background-color: #fff;
+    position: fixed !important;
+    z-index: 1;
+}
+
+.sidebar .tablinks
+{
+    width: 25%;
+}
+
+.tablinks
+{
+    color: #fff;
+    background-color: #333;
+    transition: all 1s ease-out;
+}
+
+
+body
+{
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    height: 100%;
+}
+
+
+.viewarea
+{
+    overflow: auto;
+    width: 100%;
+    height: 98vh;
+    margin-left: 4%;
+}
+
+.topbar
+{
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    background-color: rosybrown;
+    display:flex;
+    flex-direction: row;
+}
+
+.scrollable
+{
+    margin-left: 25%;
+    overflow: hidden;
+}
+
+#map {
+    position: fixed !important;
+    top: 8px;
+    right: 30px;
+    width: 200px;
+    height: 100%;
+    z-index: 100 !important;
+}
+
+.tabcontent
+{
+    width: fit-content;
+    height: 100%;
+    block-size: fit-content;
+}

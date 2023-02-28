@@ -41,12 +41,14 @@ function create_chart(data, jq_container){
     chart_config = {    chart: {
         container: jq_container,
         connectors: {
-            type: "step",
-            stackIndent: 8
+            type: "straight",
+            stackIndent: 15
         },
-        levelSeparation: 45,
-        siblingSeparation: 50,
-        subTeeSeparation: 150
+        levelSeparation: 300,
+        siblingSeparation: 20,
+        subTeeSeparation: 70,
+        rootOrientation: "WEST",
+        hideRootNode: "true"
     }, nodeStructure: data};
 
     return new Treant(chart_config, function() { alert( 'Tree Loaded' ) }, $ );

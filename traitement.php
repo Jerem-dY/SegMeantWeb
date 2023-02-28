@@ -1,40 +1,163 @@
-<?php 
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>SegMeant</title>
+		<link rel="stylesheet" href="scripts/treant/Treant.css" type="text/css"/>
+		<link rel="stylesheet" href="style/style.css" />
+		<script type="text/javascript" src="scripts/jquery-3.6.1.min.js"></script>
+		<script src="scripts/xml2json.min.js"></script>
+		<script src="scripts/jsonview/dist/jsonview.js"></script>
+		<script src="scripts/json2table.js"></script>
+		<script src="scripts/JSON5.min.js"></script>
+		<script src="scripts/treant/vendor/raphael.js"></script>
+		<script src="scripts/treant/Treant.js"></script>
+		<script src="scripts/tree.js"></script>
+        <script src="scripts/pagemap.min.js"></script>
+		
+	</head>
+	
+	<body>
+		
+		<div id="tabs" class="sidebar">
+			<div class="tablinks">
+				<button class="tabletab tablinks" id="tabletab">Table</button>
+			</div>
+			<div class="tablinks">
+				<button class="treetab tablinks" id="treetab">Tree</button>
+			</div>
+            <input type="number" id="zoom" name="zoom" min="0.1" max="2.0" step="0.1" value="1.0">
+		</div>
+        <h2><a href="https://jerem-dy.github.io/SegMeantWeb/html/index.html">SegMeant</a></h2>
+		<section class="viewarea">
+			<div id="tabletab" class="tabcontent" hidden>
+			</div>
+			<div id="treetab" class="tabcontent" hidden>
+				<div id="tree-simple" class="scrollable"></div>
+			</div>
+		</section>
 
-    /*if($_POST["rep1"] == "Paris" || $_POST["rep1"] == "paris" || $_POST["rep1"] == "PARIS"){
-        print "<p>La capitale de la France est bien Paris.</p>";
-    }
-    else{
-        print "<p>Eh non, la capitale de la France est Paris et non ". $_POST["rep1"] ." ! Ahah. </p>";
-    }
+		<canvas id='map'></canvas>
+		<script type="text/javascript">
 
-    if($_POST["rep2"] == "Rome" || $_POST["rep2"] == "rome" || $_POST["rep2"] == "ROME"){
-        print "<p>La capitale de l'Italie est bien Rome.</p>";
-    }
-    else{
-        print "<p>Eh non, la capitale de l'Italie est Rome et non ". $_POST["rep2"] ." ! Ahah. </p>";
-    }*/
+            pagemap(document.querySelector('#map'), {
+                viewport: document.querySelector('.viewarea'),
+                styles: {
+                    'header,footer,section,article': 'rgba(0,0,0,0.08)',
+                    'h1,a': 'rgba(0,0,0,0.10)',
+                    'h2,h3,h4': 'rgba(0,0,0,0.08)'
+                },
+                back: 'rgba(0,0,0,0.02)',
+                view: 'rgba(0,0,0,0.05)',
+                drag: 'rgba(0,0,0,0.10)',
+                interval: 50
+            });
 
-    //print escapeshellarg(base64_encode('abé')); 
+            $("#zoom").change(function(){
+                $(".scrollable").css("scale", $("#zoom").val());
+            });
 
-    //print base64_encode($_POST["text"]);
-    putenv('LC_ALL=en_US.UTF-8');
-    $cmd = "python3 test.py "."\"".$_POST["text"]."\"";
+			$("button.tablinks").on(
+				{
+					"click" : function()
+					{
 
-    //print mb_detect_encoding(htmlentities($cmd, ENT_COMPAT, 'UTF-8'));
-    //print $cmd;
-    exec($cmd, $return);
+						let tabs = $(".tabcontent");
+						let btns = $("button.tablinks");
 
-    //echo end($return);
 
-    //$byte_array = unpack('C*', $return[count($return)-2]);
+						for(let i = 0 ; i < tabs.length ; i++)
+						{
+							if($(tabs[i]).attr('id') == $(this).attr('id'))
+							{
+								$(tabs[i]).show();
+							}
+							else
+							{
+								$(tabs[i]).hide();
+							}
+						}
 
-    $xml_string = end($return);
+						$(this).addClass("active");
 
-    print json_encode($xml_string);
+						for(let i = 0 ; i < btns.length ; i++)
+						{
+							if(btns[i] != this)
+							{
+								$(btns[i]).removeClass("active");
+							}
+						}
+					}
+				}
+			);
 
-    /*$document = new DOMDocument();
-    $document->loadXML($xml_string);
 
-    print $document->saveXML();*/
+			$("button.toggleBtn").on(
+				{
+					"click" : function()
+					{
+						if($(this).hasClass("rightpannel"))
+						{
+							$("#ctrlTransport").toggle();
+						}
+						else if($(this).hasClass("lowpannel"))
+						{
+							$("#tabs").toggle();
+						}
+						
+					}
+					
+				}
+			);
 
-?>
+            var down=false;
+            var scrollLeft=0;
+            var x = 0;
+
+            $('.scrollable').mousedown(function(e) {
+                down = true;
+                scrollLeft = $('body').scrollLeft;
+                x = e.clientX;
+            }).mouseup(function() {
+                down = false;
+            }).mousemove(function(e) {
+                if (down) {
+                    $('body').scrollLeft = scrollLeft + x - e.clientX;
+                }
+            }).mouseleave(function() {
+                down = false;
+            });
+
+
+					
+            var result = <?php
+                    putenv("LC_ALL=en_US.UTF-8");
+                    $cmd = "python3 test.py "."\"".$_POST["text"]."\"";
+
+                    exec($cmd, $return);
+
+                    $xml_string = end($return);
+
+                    print json_encode($xml_string);
+                ?>;
+
+            var doc = JSON5.parse(result);
+
+            $(".tree").html("");
+            
+            var tree = create_chart(doc.tree, "#tree-simple");
+            $('#tree-simple').css("overflow", "visible");
+
+            let table = tableFromJson(doc.linear);
+
+            table.classList.add('scrollable');
+
+            document.querySelector("div#tabletab").appendChild(table)
+
+			
+		</script>
+	</body>
+</html>
+
+
+
